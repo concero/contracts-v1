@@ -37,6 +37,9 @@ import deployPauseDummy from "./deployPauseDummy";
 
 import populateWithdrawalRequests from "./populateWithdrawalRequests";
 import { getFailedCCIPTxs } from "./getFailedCCIPTxs";
+
+import updateClfPremiumFeesTask from "./deployInfra/updateClfPremiumFeesTask";
+
 export default {
   deployConceroDexSwap,
   deployConceroOrchestrator,
@@ -73,4 +76,5 @@ export default {
   populateWithdrawalRequests,
   getFailedCCIPTxs,
   getPoolBalances,
+  updateClfPremiumFeesTask,
 };
