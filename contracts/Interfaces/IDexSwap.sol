@@ -17,7 +17,7 @@ interface IDexSwap {
         address toToken;
         uint256 toAmount;
         uint256 toAmountMin;
-        bytes dexData;
+        bytes dexCallData;
     }
 
     /**
