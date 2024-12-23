@@ -39,6 +39,7 @@ import populateWithdrawalRequests from "./populateWithdrawalRequests";
 import { getFailedCCIPTxs } from "./getFailedCCIPTxs";
 
 import updateClfPremiumFeesTask from "./deployInfra/updateClfPremiumFeesTask";
+import { deployDeterministically } from "./deterministicDeployment";
 
 export default {
   deployConceroDexSwap,
@@ -77,4 +78,5 @@ export default {
   getFailedCCIPTxs,
   getPoolBalances,
   updateClfPremiumFeesTask,
+  deployDeterministically,
 };
