@@ -17,7 +17,6 @@ import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
 import {IParentPoolCLFCLA, IParentPoolCLFCLAViewDelegate} from "./Interfaces/IParentPoolCLFCLA.sol";
 import {IParentPool} from "./Interfaces/IParentPool.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import {LPToken} from "./LPToken.sol";
 import {LibConcero} from "./Libraries/LibConcero.sol";
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 import {ParentPoolCommon} from "./ParentPoolCommon.sol";

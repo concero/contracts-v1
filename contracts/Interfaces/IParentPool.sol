@@ -2,7 +2,6 @@
 pragma solidity 0.8.20;
 
 import {IPool} from "./IPool.sol";
-import {ICCIP} from "./ICCIP.sol";
 
 interface IParentPool is IPool {
     /* TYPE DECLARATIONS */

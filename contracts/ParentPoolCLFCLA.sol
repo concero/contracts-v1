@@ -72,6 +72,7 @@ contract ParentPoolCLFCLA is
      * @param err the error of the request sent
      * @dev response & err will never be empty or populated at same time.
      */
+    // solhint-disable-next-line chainlink-solidity/prefix-internal-functions-with-underscore
     function fulfillRequest(
         bytes32 requestId,
         bytes memory response,
