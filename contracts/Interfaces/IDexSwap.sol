@@ -9,7 +9,7 @@ interface IDexSwap {
     /// @param toToken address of the token to be received
     /// @param toAmount amount of token to be received
     /// @param toAmountMin minimum amount of token to be received
-    /// @param dexData encoded data for the DEX
+    /// @param dexCallData encoded data for the DEX
     struct SwapData {
         address dexRouter;
         address fromToken;

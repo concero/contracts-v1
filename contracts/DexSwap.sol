@@ -103,7 +103,7 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
     }
 
     function _performSwap(IDexSwap.SwapData memory swapData) private {
-        if (swapData.dexData.length == 0) revert EmptyDexData();
+        if (swapData.dexCallData.length == 0) revert EmptyDexData();
 
         address routerAddress = swapData.dexRouter;
         if (!s_routerAllowed[routerAddress]) revert DexRouterNotAllowed();
@@ -113,10 +113,10 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
 
         bool success;
         if (isFromNative) {
-            (success, ) = routerAddress.call{value: fromAmount}(swapData.dexData);
+            (success, ) = routerAddress.call{value: fromAmount}(swapData.dexCallData);
         } else {
             IERC20(swapData.fromToken).safeIncreaseAllowance(routerAddress, fromAmount);
-            (success, ) = routerAddress.call(swapData.dexData);
+            (success, ) = routerAddress.call(swapData.dexCallData);
         }
 
         if (!success) {

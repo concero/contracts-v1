@@ -100,8 +100,8 @@ contract BridgeCompressionTest is BridgeBaseTest {
                 "ToAmountMin mismatch"
             );
             assertEq(
-                decompressedSwapData[i].dexData,
-                originalSwapData[i].dexData,
+                decompressedSwapData[i].dexCallData,
+                originalSwapData[i].dexCallData,
                 "DexData mismatch"
             );
         }
@@ -212,7 +212,7 @@ contract BridgeCompressionTest is BridgeBaseTest {
         uint24 fee = 3000;
         uint160 sqrtPriceLimitX96 = 0;
         uint256 deadline = block.timestamp + 3600;
-        bytes memory dexData = abi.encode(routerAddress, fee, sqrtPriceLimitX96, deadline);
+        bytes memory dexCallData = abi.encode(routerAddress, fee, sqrtPriceLimitX96, deadline);
 
         IDexSwap.SwapData[] memory _dstSwapData = new IDexSwap.SwapData[](1);
         IDexSwap.SwapData memory singleSwap = IDexSwap.SwapData({
@@ -222,7 +222,7 @@ contract BridgeCompressionTest is BridgeBaseTest {
             toToken: DAI_AVALANCHE,
             toAmount: TO_AMOUNT,
             toAmountMin: USER_FUNDS / 3,
-            dexData: dexData
+            dexCallData: dexCallData
         });
         _dstSwapData[0] = singleSwap;
 
