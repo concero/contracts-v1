@@ -151,29 +151,40 @@ contract DeployHelper is Script {
         uint256 chainId = block.chainid;
 
         if (chainId == vm.envUint("BASE_CHAIN_ID")) {
-            address[] memory routers = new address[](3);
+            address[] memory routers = new address[](4);
             routers[0] = vm.envAddress("UNISWAP_ROUTER_BASE");
             routers[1] = vm.envAddress("SUSHISWAP_ROUTER_BASE");
             routers[2] = vm.envAddress("ALIENBASE_ROUTER_BASE");
+            routers[3] = vm.envAddress("WETH_BASE");
             return routers;
         }
 
         if (chainId == vm.envUint("POLYGON_CHAIN_ID")) {
-            address[] memory routers = new address[](2);
+            address[] memory routers = new address[](3);
             routers[0] = vm.envAddress("QUICKSWAP_ROUTER_POLYGON");
             routers[1] = vm.envAddress("UNISWAP_ROUTER_POLYGON");
+            routers[2] = vm.envAddress("WPOL_POLYGON");
             return routers;
         }
 
         if (chainId == vm.envUint("AVALANCHE_CHAIN_ID")) {
-            address[] memory routers = new address[](1);
+            address[] memory routers = new address[](2);
             routers[0] = vm.envAddress("PARASWAP_ROUTER_AVALANCHE");
+            routers[1] = vm.envAddress("WAVAX_AVALANCHE");
             return routers;
         }
 
-				if (chainId == vm.envUint("OPTIMISM_CHAIN_ID")) {
-            address[] memory routers = new address[](1);
+        if (chainId == vm.envUint("ARBITRUM_CHAIN_ID")) {
+            address[] memory routers = new address[](2);
+            routers[0] = vm.envAddress("UNISWAP_ROUTER_ARBITRUM");
+            routers[1] = vm.envAddress("WETH_ARBITRUM");
+            return routers;
+        }
+
+        if (chainId == vm.envUint("OPTIMISM_CHAIN_ID")) {
+            address[] memory routers = new address[](2);
             routers[0] = vm.envAddress("ODOS_ROUTER_OPTIMISM");
+            routers[1] = vm.envAddress("WETH_OPTIMISM");
             return routers;
         }
 
