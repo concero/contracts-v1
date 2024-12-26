@@ -168,9 +168,10 @@ contract DeployHelper is Script {
         }
 
         if (chainId == vm.envUint("AVALANCHE_CHAIN_ID")) {
-            address[] memory routers = new address[](2);
+            address[] memory routers = new address[](3);
             routers[0] = vm.envAddress("PARASWAP_ROUTER_AVALANCHE");
             routers[1] = vm.envAddress("WAVAX_AVALANCHE");
+            routers[2] = vm.envAddress("PANGOLIN_ROUTER_AVALANCHE");
             return routers;
         }
 
