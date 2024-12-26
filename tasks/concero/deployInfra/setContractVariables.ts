@@ -269,7 +269,7 @@ export async function setDonSecretsSlotId(deployableChain: CNetwork, slotId: num
 }
 
 const allowedRoutersByChain: Record<Partial<CNetworkNames>, Array<Address>> = {
-  arbitrum: [getEnvVar("SUSHISWAP_ROUTER_ARBITRUM"), getEnvVar("UNISWAP_ROUTER_ARBITRUM")],
+  arbitrum: [getEnvVar("SUSHISWAP_ROUTER_ARBITRUM"), getEnvVar("UNISWAP_ROUTER_ARBITRUM"), getEnvVar("WETH_ARBITRUM")],
 };
 
 export async function setDexSwapAllowedRouters(deployableChain: CNetwork, abi: any) {
@@ -279,7 +279,6 @@ export async function setDexSwapAllowedRouters(deployableChain: CNetwork, abi: a
   const allowedRouters = allowedRoutersByChain[dcName];
 
   for (const allowedRouter of allowedRouters) {
-    console.log(allowedRouter);
     try {
       const { request: setDexRouterReq } = await publicClient.simulateContract({
         address: conceroProxy,
