@@ -2,7 +2,6 @@ import { Deployment } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import conceroNetworks from "../constants/conceroNetworks";
 import { log, getEnvAddress, updateEnvAddress } from "../utils/";
-import { writeContractConfig } from "../constants/";
 import { IProxyType } from "../types/deploymentVariables";
 
 const deployTransparentProxy: (hre: HardhatRuntimeEnvironment, proxyType: IProxyType) => Promise<void> =
