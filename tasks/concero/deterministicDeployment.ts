@@ -3,6 +3,7 @@ This task deploys a contract deterministically using the Create2 opcode.
 It computes the address where the contract will be deployed before actually deploying it.
 This is useful for deploying contracts at a specific address, such as a proxy contract.
 
+CREATEXCRUNCH USAGE:
 To compute salt for a gas-efficient address, use createXcrunch: https://github.com/HrikB/createXcrunch
 
 ```bash
@@ -12,7 +13,8 @@ export CALLER="<DEPLOYER_ADDRESS>"
 export $CODE_HASH="<CODE_HASH>"
 
 # run createXcrunch:
-./target/release/createxcrunch create2 --leading 3 --factory=$FACTORY --caller=$CALLER --code-hash=$CODE_HASH
+./target/release/createxcrunch create2 --help
+./target/release/createxcrunch create2 --total 4 --factory=$FACTORY --caller=$CALLER --code-hash=$CODE_HASH
 
 # Example output
 <SALT_TO_COPY> => <DEPLOYMENT_ADDRESS>
