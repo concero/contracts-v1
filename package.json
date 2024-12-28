@@ -56,7 +56,7 @@
     "@chainlink/contracts": "^1.2.0",
     "@chainlink/contracts-ccip": "^1.4.0",
     "@chainlink/env-enc": "^1.0.5",
-    "@chainlink/functions-toolkit": "^0.3.0",
+    "@chainlink/functions-toolkit": "0.3.2",
     "@chainlink/hardhat-chainlink": "^0.0.4",
     "@chainlink/local": "^0.2.2",
     "@chainlink/solhint-plugin-chainlink-solidity": "^1.0.1",

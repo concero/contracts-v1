@@ -26,9 +26,9 @@
 			// mainnets
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_ARBITRUM}').toString(16)}`]: {
 				urls: [
-					`https://arbitrum-mainnet.infura.io/v3/${secrets.INFURA_API_KEY}`,
-					'https://arbitrum.blockpi.network/v1/rpc/public',
-					'https://arbitrum-rpc.publicnode.com',
+					'https://arbitrum.llamarpc.com',
+					'https://arbitrum-one-rpc.publicnode.com',
+					'https://arbitrum.drpc.org',
 				],
 				chainId: '0xa4b1',
 				usdcAddress: '${USDC_ARBITRUM}',
@@ -36,9 +36,9 @@
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_POLYGON}').toString(16)}`]: {
 				urls: [
-					`https://polygon-mainnet.infura.io/v3/${secrets.INFURA_API_KEY}`,
-					'https://polygon.blockpi.network/v1/rpc/public',
 					'https://polygon-bor-rpc.publicnode.com',
+					'https://rpc.ankr.com/polygon',
+					'https://polygon.llamarpc.com',
 				],
 				chainId: '0x89',
 				usdcAddress: '${USDC_POLYGON}',
@@ -46,20 +46,16 @@
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_AVALANCHE}').toString(16)}`]: {
 				urls: [
-					`https://avalanche-mainnet.infura.io/v3/${secrets.INFURA_API_KEY}`,
-					'https://avalanche.blockpi.network/v1/rpc/public',
+					'https://avalanche.public-rpc.com',
 					'https://avalanche-c-chain-rpc.publicnode.com',
+					'https://rpc.ankr.com/avalanche',
 				],
 				chainId: '0xa86a',
 				usdcAddress: '${USDC_AVALANCHE}',
 				poolAddress: '${CHILD_POOL_PROXY_AVALANCHE}',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}').toString(16)}`]: {
-				urls: [
-					'https://optimism-rpc.publicnode.com',
-					'https://rpc.ankr.com/optimism',
-					'https://optimism.drpc.org',
-				],
+				urls: ['https://optimism.llamarpc.com', 'https://rpc.ankr.com/optimism', 'https://optimism.drpc.org'],
 				chainId: '0xa',
 				usdcAddress: '${USDC_OPTIMISM}',
 				poolAddress: '${CHILD_POOL_PROXY_OPTIMISM}',

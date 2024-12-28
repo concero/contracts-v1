@@ -42,7 +42,7 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 			'0x5d4060fd7de4931c2025652b1832e2d99058025c0c47c74dd5d5b85976358197',
 		];
 	},
-	collect_liq: async () => {
+	pool_collect_liq: async () => {
 		const srcJsHashSum = getHashSum(await (await fetch(collectLiquidityCodeUrl)).text());
 		const ethersHashSum = getHashSum(await (await fetch(ethersV6CodeUrl)).text());
 		const placeholder = '0xDddDDb8a8E41C194ac6542a0Ad7bA663A72741E0';
