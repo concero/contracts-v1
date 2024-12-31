@@ -10,7 +10,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {InfraCCIP} from "./InfraCCIP.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
-import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
 
 /* ERRORS */
 ///@notice error emitted when the input amount is less than the fees

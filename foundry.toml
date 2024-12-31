@@ -12,5 +12,5 @@ remappings = [
     "@chainlink/=node_modules/@chainlink/",
     "@uniswap/=node_modules/@uniswap/",
     "sushiswap-v3-periphery/contracts/=node_modules/sushiswap-v3-periphery/contracts/",
-    "forge-std/=node_modules/forge-std/src/",
+    "forge-std/=node_modules/forge-std/",
 ]

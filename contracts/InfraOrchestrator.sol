@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_OPTIMISM, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, CHAIN_SELECTOR_ETHEREUM, USDC_ARBITRUM, USDC_BASE, USDC_POLYGON, USDC_AVALANCHE, USDC_OPTIMISM, USDC_ETHEREUM} from "./Constants.sol";
+import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_OPTIMISM, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, CHAIN_SELECTOR_ETHEREUM} from "./Constants.sol";
 import {InfraCommon} from "./InfraCommon.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
 import {IDexSwap} from "./Interfaces/IDexSwap.sol";
 import {IInfraCLF} from "./Interfaces/IInfraCLF.sol";
 import {IInfraOrchestrator, IOrchestratorViewDelegate} from "./Interfaces/IInfraOrchestrator.sol";
-import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
-import {InfraStorage} from "./Libraries/InfraStorage.sol";
 import {InfraStorageSetters} from "./Libraries/InfraStorageSetters.sol";
 import {LibConcero} from "./Libraries/LibConcero.sol";
 import {IFunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/interfaces/IFunctionsClient.sol";
@@ -147,7 +145,7 @@ contract InfraOrchestrator is
             revert InvalidSwapData();
         }
 
-        _obtainSwapDataFromToken(srcSwapData);
+        _transferTokenFromUser(srcSwapData);
 
         uint256 amountReceivedFromSwap = _swap(srcSwapData, address(this));
         bridgeData.amount =
@@ -168,7 +166,7 @@ contract InfraOrchestrator is
         address receiver,
         Integration memory integration
     ) external payable validateSrcSwapData(swapData) nonReentrant {
-        _obtainSwapDataFromToken(swapData);
+        _transferTokenFromUser(swapData);
         swapData = _collectSwapFee(swapData, integration);
         _swap(swapData, receiver);
     }
@@ -192,7 +190,7 @@ contract InfraOrchestrator is
 
     /**
      * @notice Wrapper function to delegate call to ConceroBridge.addUnconfirmedTX
-     * @param conceroMessageId the Concerro message ID
+     * @param conceroMessageId the Concero message ID
      * @param srcChainSelector the source chain selector
      * @param txDataHash the transaction data hash
      */
@@ -342,7 +340,7 @@ contract InfraOrchestrator is
     }
 
     /* INTERNAL FUNCTIONS */
-    function _obtainSwapDataFromToken(IDexSwap.SwapData[] memory swapData) internal {
+    function _transferTokenFromUser(IDexSwap.SwapData[] memory swapData) internal {
         address initialToken = swapData[0].fromToken;
         uint256 initialAmount = swapData[0].fromAmount;
 

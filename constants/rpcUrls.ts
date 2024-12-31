@@ -43,12 +43,7 @@ export const urls: Record<string, string[]> = {
     `https://avalanche-fuji.core.chainstack.com/ext/bc/C/rpc/${CHAINSTACK_API_KEY}`,
     `https://ava-testnet.blastapi.io/${BLAST_API_KEY}ext/bc/C/rpc`,
   ],
-  arbitrum: [
-    `https://lb.drpc.org/ogrpc?network=arbitrum&dkey=${DRPC_API_KEY}`,
-    `https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
-    `https://arbitrum-one.blastapi.io/${BLAST_API_KEY}`,
-    "https://rpc.ankr.com/arbitrum",
-  ],
+  arbitrum: ["https://rpc.ankr.com/arbitrum", "https://arbitrum-one-rpc.publicnode.com"],
   arbitrumSepolia: [
     `https://lb.drpc.org/ogrpc?network=arbitrum-sepolia&dkey=${DRPC_API_KEY}`,
     `https://arbitrum-sepolia.infura.io/v3/${INFURA_API_KEY}`,
