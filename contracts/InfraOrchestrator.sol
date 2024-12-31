@@ -145,7 +145,7 @@ contract InfraOrchestrator is
             revert InvalidSwapData();
         }
 
-        _obtainSwapDataFromToken(srcSwapData);
+        _transferTokenFromUser(srcSwapData);
 
         uint256 amountReceivedFromSwap = _swap(srcSwapData, address(this));
         bridgeData.amount =
@@ -166,7 +166,7 @@ contract InfraOrchestrator is
         address receiver,
         Integration memory integration
     ) external payable validateSrcSwapData(swapData) nonReentrant {
-        _obtainSwapDataFromToken(swapData);
+        _transferTokenFromUser(swapData);
         swapData = _collectSwapFee(swapData, integration);
         _swap(swapData, receiver);
     }
@@ -190,7 +190,7 @@ contract InfraOrchestrator is
 
     /**
      * @notice Wrapper function to delegate call to ConceroBridge.addUnconfirmedTX
-     * @param conceroMessageId the Concerro message ID
+     * @param conceroMessageId the Concero message ID
      * @param srcChainSelector the source chain selector
      * @param txDataHash the transaction data hash
      */
@@ -340,7 +340,7 @@ contract InfraOrchestrator is
     }
 
     /* INTERNAL FUNCTIONS */
-    function _obtainSwapDataFromToken(IDexSwap.SwapData[] memory swapData) internal {
+    function _transferTokenFromUser(IDexSwap.SwapData[] memory swapData) internal {
         address initialToken = swapData[0].fromToken;
         uint256 initialAmount = swapData[0].fromAmount;
 
