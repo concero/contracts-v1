@@ -123,6 +123,32 @@ contract InfraOrchestrator is
     }
 
     /**
+     * @notice Function to get the total amount of fees in USDC
+     * @param dstChainSelector the destination blockchain chain selector
+     * @param amount the amount to calculate the fees for
+     * @return clfFees the amount of Chainlink functions fees in USDC
+     * @return ccipFees the amount of CCIP fees in USDC
+     * @return conceroFees the amount of Concero fees in USDC
+     */
+    function getFees(
+        uint64 dstChainSelector,
+        uint256 amount
+    ) external returns (uint256 clfFees, uint256 ccipFees, uint256 conceroFees) {
+        bytes memory delegateCallArgs = abi.encodeWithSelector(
+            IConceroBridge.getFees.selector,
+            dstChainSelector,
+            amount
+        );
+
+        bytes memory delegateCallRes = LibConcero.safeDelegateCall(
+            i_conceroBridge,
+            delegateCallArgs
+        );
+
+        return abi.decode(delegateCallRes, (uint256, uint256, uint256));
+    }
+
+    /**
      * @notice Performs a bridge coupled with the source chain swap and an optional destination chain swap.
      * @param bridgeData bridge payload of type BridgeData
      * @param srcSwapData swap payload for the source chain of type IDexSwap.SwapData[]
