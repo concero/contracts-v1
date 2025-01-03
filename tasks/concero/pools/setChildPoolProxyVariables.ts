@@ -89,8 +89,8 @@ async function addPoolsToAllChains(hre) {
 
   for (const dstChain of chains) {
     if (dstChain.chainId === chain.chainId) continue;
-    if (dstChain.chainId === conceroNetworks.base.chainId || dstChain.chainId === conceroNetworks.baseSepolia.chainId)
-      continue;
+    // if (dstChain.chainId === conceroNetworks.base.chainId || dstChain.chainId === conceroNetworks.baseSepolia.chainId)
+    //   continue;
 
     const { name: dstChainName, chainSelector: dstChainSelector } = dstChain;
     const poolAddressToAdd =
@@ -127,6 +127,6 @@ async function addPoolsToAllChains(hre) {
 }
 
 export async function setChildPoolProxyVariables(hre) {
-  await setConceroProxySender(hre);
+  // await setConceroProxySender(hre);
   await addPoolsToAllChains(hre);
 }
