@@ -1,7 +1,6 @@
 (async () => {
 	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] =
 		bytesArgs;
-	const messengers = [secrets.MESSENGER_0_PRIVATE_KEY, secrets.MESSENGER_1_PRIVATE_KEY];
 	const chainSelectors = {
 		[`0x${BigInt('14767482510784806043').toString(16)}`]: {
 			urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],
@@ -320,8 +319,7 @@
 				Math.floor(Math.random() * chainSelectors[dstChainSelector].urls.length)
 			];
 		const provider = new FunctionsJsonRpcProvider(dstUrl);
-		const messengerPrivateKey = messengers[Math.floor(Math.random() * messengers.length)];
-		const wallet = new ethers.Wallet('0x' + messengerPrivateKey, provider);
+		const wallet = new ethers.Wallet('0x' + secrets.MESSENGER_0_PRIVATE_KEY, provider);
 		const signer = wallet.connect(provider);
 		const abi = [
 			'function addUnconfirmedTX(bytes32, uint64, bytes32) external',
