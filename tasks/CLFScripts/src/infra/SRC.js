@@ -270,7 +270,7 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			if (dstAssetUsdPriceFeed === undefined) return 1n;
 
 			const srcNativeDstNativeRate = nativeUsdPriceFeed / dstAssetUsdPriceFeed;
-			if (srcNativeDstNativeRate === 0n) return 1n;
+			if (BigInt(srcNativeDstNativeRate) === 0n) return 1n;
 
 			const dstGasPriceInSrcCurrency = gasPriceInDstCurrency / srcNativeDstNativeRate;
 

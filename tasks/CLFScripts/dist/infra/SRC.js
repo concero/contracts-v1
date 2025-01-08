@@ -249,7 +249,7 @@
 		const getGasPriceByPriceFeeds = (nativeUsdPriceFeed, dstAssetUsdPriceFeed, gasPriceInDstCurrency) => {
 			if (dstAssetUsdPriceFeed === undefined) return 1n;
 			const srcNativeDstNativeRate = nativeUsdPriceFeed / dstAssetUsdPriceFeed;
-			if (srcNativeDstNativeRate === 0n) return 1n;
+			if (BigInt(srcNativeDstNativeRate) === 0n) return 1n;
 			const dstGasPriceInSrcCurrency = gasPriceInDstCurrency / srcNativeDstNativeRate;
 			return dstGasPriceInSrcCurrency < 1n ? 1n : dstGasPriceInSrcCurrency;
 		};
