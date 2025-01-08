@@ -117,16 +117,9 @@
 		const ethersId = ethers.id('ConceroBridgeSent(bytes32,uint256,uint64,address,bytes)');
 		const contract = new ethers.Interface(abi);
 
-		const fallBackProviders = chainMap[srcChainSelector].urls.map(url => {
-			return {
-				provider: new FunctionsJsonRpcProvider(url),
-				priority: Math.random(),
-				stallTimeout: 2000,
-				weight: 1,
-			};
-		});
+		const url = chainMap[srcChainSelector].urls[Math.floor(Math.random() * chainMap[srcChainSelector].urls.length)];
 
-		const provider = new ethers.FallbackProvider(fallBackProviders, null, {quorum: 2});
+		const provider = new FunctionsJsonRpcProvider(url);
 		let latestBlockNumber = BigInt(await provider.getBlockNumber());
 		const confirmations = chainMap[srcChainSelector].confirmations;
 
@@ -139,6 +132,7 @@
 		const logs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
+			// @dev for new blockchains with blockNumber < 1000
 			fromBlock: Math.max(latestBlockNumber - 1000n, 0n),
 			toBlock: latestBlockNumber,
 		});
@@ -153,8 +147,8 @@
 		while (latestBlockNumber - logBlockNumber < confirmations) {
 			await sleep(5000);
 			latestBlockNumber = BigInt(await provider.getBlockNumber());
-			if (latestBlockNumber < logBlockNumber) {
-				throw new Error('Provider fell behind sync.');
+			if (latestBlockNumber >= logBlockNumber) {
+				break;
 			}
 		}
 
