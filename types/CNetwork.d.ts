@@ -5,7 +5,7 @@ import {Chain} from 'viem';
 
 export type envString = string | undefined;
 
-export type CNetworkNames = "localhost" |
+export type CNetworkNames = "localhost" | "hardhat" |
   "ethereum" | "arbitrum" | "optimism" | "polygon" | "polygonZkEvm" | "avalanche" | "base" | "sepolia" | "optimismSepolia" | "arbitrumSepolia" | "avalancheFuji" | "baseSepolia" | "polygonAmoy";
 
 export type NetworkType = "mainnet" | "testnet";

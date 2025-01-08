@@ -105,20 +105,14 @@
 		const abi = ['event ConceroBridgeSent(bytes32 indexed, uint256, uint64, address, bytes)'];
 		const ethersId = ethers.id('ConceroBridgeSent(bytes32,uint256,uint64,address,bytes)');
 		const contract = new ethers.Interface(abi);
-		const fallBackProviders = chainMap[srcChainSelector].urls.map(url => {
-			return {
-				provider: new FunctionsJsonRpcProvider(url),
-				priority: Math.random(),
-				stallTimeout: 2000,
-				weight: 1,
-			};
-		});
-		const provider = new ethers.FallbackProvider(fallBackProviders, null, {quorum: 1});
+		const url = chainMap[srcChainSelector].urls[Math.floor(Math.random() * chainMap[srcChainSelector].urls.length)];
+		const provider = new FunctionsJsonRpcProvider(url);
 		let latestBlockNumber = BigInt(await provider.getBlockNumber());
+		const confirmations = chainMap[srcChainSelector].confirmations;
 		const logs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
-			fromBlock: latestBlockNumber - 1000n,
+			fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
 			toBlock: latestBlockNumber,
 		});
 		if (!logs.length) {
@@ -126,7 +120,7 @@
 		}
 		const log = logs[0];
 		const logBlockNumber = BigInt(log.blockNumber);
-		while (latestBlockNumber - logBlockNumber < chainMap[srcChainSelector].confirmations) {
+		while (latestBlockNumber - logBlockNumber < confirmations) {
 			await sleep(5000);
 			latestBlockNumber = BigInt(await provider.getBlockNumber());
 		}
