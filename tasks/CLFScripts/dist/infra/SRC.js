@@ -1,11 +1,7 @@
 (async () => {
 	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] =
 		bytesArgs;
-	const messengers = [
-		secrets.MESSENGER_0_PRIVATE_KEY,
-		secrets.MESSENGER_1_PRIVATE_KEY,
-		secrets.MESSENGER_2_PRIVATE_KEY,
-	];
+	const messengers = [secrets.MESSENGER_0_PRIVATE_KEY, secrets.MESSENGER_1_PRIVATE_KEY];
 	const chainSelectors = {
 		[`0x${BigInt('14767482510784806043').toString(16)}`]: {
 			urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],

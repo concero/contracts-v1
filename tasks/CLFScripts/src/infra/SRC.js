@@ -8,11 +8,7 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 (async () => {
 	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] =
 		bytesArgs;
-	const messengers = [
-		secrets.MESSENGER_0_PRIVATE_KEY,
-		secrets.MESSENGER_1_PRIVATE_KEY,
-		secrets.MESSENGER_2_PRIVATE_KEY,
-	];
+	const messengers = [secrets.MESSENGER_0_PRIVATE_KEY, secrets.MESSENGER_1_PRIVATE_KEY];
 	const chainSelectors = {
 		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_FUJI}').toString(16)}`]: {
 			urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],
