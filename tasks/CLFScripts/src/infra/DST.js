@@ -126,7 +126,7 @@
 			};
 		});
 
-		const provider = new ethers.FallbackProvider(fallBackProviders, null, {quorum: 1});
+		const provider = new ethers.FallbackProvider(fallBackProviders, null, {quorum: 2});
 		let latestBlockNumber = BigInt(await provider.getBlockNumber());
 
 		const logs = await provider.getLogs({
