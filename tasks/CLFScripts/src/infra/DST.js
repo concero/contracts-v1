@@ -123,17 +123,11 @@
 		let latestBlockNumber = BigInt(await provider.getBlockNumber());
 		const confirmations = chainMap[srcChainSelector].confirmations;
 
-		const confirmedBlockNumber = latestBlockNumber - confirmations;
-
-		if (latestBlockNumber > confirmedBlockNumber) {
-			latestBlockNumber = confirmedBlockNumber;
-		}
-
 		const logs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
 			// @dev for new blockchains with blockNumber < 1000
-			fromBlock: Math.max(latestBlockNumber - 1000n, 0n),
+			fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
 			toBlock: latestBlockNumber,
 		});
 
@@ -147,16 +141,13 @@
 		while (latestBlockNumber - logBlockNumber < confirmations) {
 			await sleep(5000);
 			latestBlockNumber = BigInt(await provider.getBlockNumber());
-			if (latestBlockNumber >= logBlockNumber) {
-				break;
-			}
 		}
 
 		const newLogs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
 			fromBlock: logBlockNumber,
-			toBlock: latestBlockNumber - confirmations,
+			toBlock: latestBlockNumber,
 		});
 
 		if (!newLogs.some(l => l.transactionHash === log.transactionHash)) {
