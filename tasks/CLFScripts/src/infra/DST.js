@@ -139,7 +139,7 @@
 		const logs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
-			fromBlock: latestBlockNumber - 1000n,
+			fromBlock: Math.max(latestBlockNumber - 1000n, 0n),
 			toBlock: latestBlockNumber,
 		});
 
