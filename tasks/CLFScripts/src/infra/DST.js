@@ -128,6 +128,13 @@
 
 		const provider = new ethers.FallbackProvider(fallBackProviders, null, {quorum: 2});
 		let latestBlockNumber = BigInt(await provider.getBlockNumber());
+		const confirmations = chainMap[srcChainSelector].confirmations;
+
+		const confirmedBlockNumber = latestBlockNumber - confirmations;
+
+		if (latestBlockNumber > confirmedBlockNumber) {
+			latestBlockNumber = confirmedBlockNumber;
+		}
 
 		const logs = await provider.getLogs({
 			address: srcContractAddress,
@@ -143,16 +150,19 @@
 		const log = logs[0];
 		const logBlockNumber = BigInt(log.blockNumber);
 
-		while (latestBlockNumber - logBlockNumber < chainMap[srcChainSelector].confirmations) {
+		while (latestBlockNumber - logBlockNumber < confirmations) {
 			await sleep(5000);
 			latestBlockNumber = BigInt(await provider.getBlockNumber());
+			if (latestBlockNumber < logBlockNumber) {
+				throw new Error('Provider fell behind sync.');
+			}
 		}
 
 		const newLogs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
 			fromBlock: logBlockNumber,
-			toBlock: latestBlockNumber,
+			toBlock: latestBlockNumber - confirmations,
 		});
 
 		if (!newLogs.some(l => l.transactionHash === log.transactionHash)) {
