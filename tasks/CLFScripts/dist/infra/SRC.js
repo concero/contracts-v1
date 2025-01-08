@@ -1,6 +1,11 @@
 (async () => {
 	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] =
 		bytesArgs;
+	const messengers = [
+		secrets.MESSENGER_0_PRIVATE_KEY,
+		secrets.MESSENGER_1_PRIVATE_KEY,
+		secrets.MESSENGER_2_PRIVATE_KEY,
+	];
 	const chainSelectors = {
 		[`0x${BigInt('14767482510784806043').toString(16)}`]: {
 			urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],
@@ -262,6 +267,8 @@
 	let nonce = 0;
 	let retries = 0;
 	let gasPrice;
+	let maxPriorityFeePerGas;
+	let maxFeePerGas;
 	const sendTransaction = async (contract, signer, txOptions) => {
 		try {
 			if ((await contract.s_transactions(conceroMessageId))[0] !== ethers.ZeroHash) return;
@@ -317,7 +324,8 @@
 				Math.floor(Math.random() * chainSelectors[dstChainSelector].urls.length)
 			];
 		const provider = new FunctionsJsonRpcProvider(dstUrl);
-		const wallet = new ethers.Wallet('0x' + secrets.MESSENGER_0_PRIVATE_KEY, provider);
+		const messengerPrivateKey = messengers[Math.floor(Math.random() * messengers.length)];
+		const wallet = new ethers.Wallet('0x' + messengerPrivateKey, provider);
 		const signer = wallet.connect(provider);
 		const abi = [
 			'function addUnconfirmedTX(bytes32, uint64, bytes32) external',
@@ -328,13 +336,13 @@
 			provider.getFeeData(),
 			provider.getTransactionCount(wallet.address),
 		]);
-		gasPrice = feeData.gasPrice;
+		gasPrice = feeData.gasPrice + getPercent(feeData.gasPrice, 10);
+		maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+		maxFeePerGas = feeData.maxFeePerGas;
 		await sendTransaction(contract, signer, {
 			nonce,
-			maxFeePerGas:
-				dstChainSelector === [`0x${BigInt('4051577828743386545').toString(16)}`]
-					? gasPrice
-					: gasPrice + getPercent(gasPrice, 10),
+			maxPriorityFeePerGas: maxPriorityFeePerGas + getPercent(maxPriorityFeePerGas, 10),
+			maxFeePerGas: maxFeePerGas + getPercent(maxFeePerGas, 10),
 		});
 		const srcUrl =
 			chainSelectors[srcChainSelector].urls[

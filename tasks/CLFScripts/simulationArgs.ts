@@ -13,7 +13,7 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 		const sender = '0x70E73f067a1fC9FE6D53151bd271715811746d3a';
 		const recipient = '0x70E73f067a1fC9FE6D53151bd271715811746d3a';
 		const amount = '0x' + BigInt(100000000000000000).toString(16);
-		const srcChainSelector = '0x' + BigInt(getEnvVar('CL_CCIP_CHAIN_SELECTOR_POLYGON')).toString(16);
+		const srcChainSelector = '0x' + BigInt(getEnvVar('CL_CCIP_CHAIN_SELECTOR_BASE')).toString(16);
 		const dstChainSelector = '0x' + BigInt(getEnvVar('CL_CCIP_CHAIN_SELECTOR_ARBITRUM')).toString(16);
 		const token = '0x' + BigInt(1).toString(16);
 		const blockNumber = '0xA65233';
@@ -26,8 +26,8 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 			jsCodeType,
 			dstContractAddress,
 			ccipMessageId,
-			srcChainSelector,
 			dstChainSelector,
+			srcChainSelector,
 			txDataHash,
 		];
 	},

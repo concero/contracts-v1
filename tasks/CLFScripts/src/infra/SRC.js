@@ -8,6 +8,11 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 (async () => {
 	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] =
 		bytesArgs;
+	const messengers = [
+		secrets.MESSENGER_0_PRIVATE_KEY,
+		secrets.MESSENGER_1_PRIVATE_KEY,
+		secrets.MESSENGER_2_PRIVATE_KEY,
+	];
 	const chainSelectors = {
 		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_FUJI}').toString(16)}`]: {
 			urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],
@@ -289,7 +294,8 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 	let nonce = 0;
 	let retries = 0;
 	let gasPrice;
-	// let maxPriorityFeePerGas;
+	let maxPriorityFeePerGas;
+	let maxFeePerGas;
 
 	const sendTransaction = async (contract, signer, txOptions) => {
 		try {
@@ -347,7 +353,8 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 				Math.floor(Math.random() * chainSelectors[dstChainSelector].urls.length)
 			];
 		const provider = new FunctionsJsonRpcProvider(dstUrl);
-		const wallet = new ethers.Wallet('0x' + secrets.MESSENGER_0_PRIVATE_KEY, provider);
+		const messengerPrivateKey = messengers[Math.floor(Math.random() * messengers.length)];
+		const wallet = new ethers.Wallet('0x' + messengerPrivateKey, provider);
 		const signer = wallet.connect(provider);
 		const abi = [
 			'function addUnconfirmedTX(bytes32, uint64, bytes32) external',
@@ -358,15 +365,15 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			provider.getFeeData(),
 			provider.getTransactionCount(wallet.address),
 		]);
-		gasPrice = feeData.gasPrice;
-		// maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+
+		gasPrice = feeData.gasPrice + getPercent(feeData.gasPrice, 10);
+		maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+		maxFeePerGas = feeData.maxFeePerGas;
+
 		await sendTransaction(contract, signer, {
 			nonce,
-			// maxPriorityFeePerGas: maxPriorityFeePerGas,
-			maxFeePerGas:
-				dstChainSelector === [`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_POLYGON}').toString(16)}`]
-					? gasPrice
-					: gasPrice + getPercent(gasPrice, 10),
+			maxPriorityFeePerGas: maxPriorityFeePerGas + getPercent(maxPriorityFeePerGas, 10),
+			maxFeePerGas: maxFeePerGas + getPercent(maxFeePerGas, 10),
 		});
 
 		const srcUrl =
