@@ -131,7 +131,11 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
         args[5] = abi.encodePacked(conceroMessageId);
         args[6] = abi.encodePacked(txDataHash);
 
-        bytes32 reqId = sendRequest(args, CL_JS_CODE, CL_FUNCTIONS_DST_CALLBACK_GAS_LIMIT);
+        bytes32 reqId = _initializeAndSendClfRequest(
+            args,
+            CL_JS_CODE,
+            CL_FUNCTIONS_DST_CALLBACK_GAS_LIMIT
+        );
 
         s_requests[reqId].requestType = RequestType.checkTxSrc;
         s_requests[reqId].isPending = true;
@@ -145,7 +149,7 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
      * @param args the arguments for the request as bytes array
      * @param jsCode the JScode that will be executed.
      */
-    function sendRequest(
+    function _initializeAndSendClfRequest(
         bytes[] memory args,
         string memory jsCode,
         uint32 gasLimit
@@ -184,6 +188,7 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
      * @param err the error
      * @dev response and error will never be populated at the same time.
      */
+    // solhint-disable-next-line chainlink-solidity/prefix-internal-functions-with-underscore
     function fulfillRequest(
         bytes32 requestId,
         bytes memory response,
@@ -235,7 +240,11 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
         args[6] = abi.encodePacked(dstChainSelector);
         args[7] = abi.encodePacked(txDataHash);
 
-        bytes32 reqId = sendRequest(args, CL_JS_CODE, CL_FUNCTIONS_SRC_CALLBACK_GAS_LIMIT);
+        bytes32 reqId = _initializeAndSendClfRequest(
+            args,
+            CL_JS_CODE,
+            CL_FUNCTIONS_SRC_CALLBACK_GAS_LIMIT
+        );
 
         s_requests[reqId].requestType = RequestType.addUnconfirmedTxDst;
         s_requests[reqId].isPending = true;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console, Vm, Test} from "forge-std/Test.sol";
+import {console, Vm, Test} from "forge-std/src/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ParentPool} from "contracts/ParentPool.sol";
 import {ParentPoolCLFCLA} from "contracts/ParentPoolCLFCLA.sol";
@@ -20,6 +20,7 @@ import {InfraStorageSetters} from "contracts/Libraries/InfraStorageSetters.sol";
 import {IInfraStorage} from "contracts/Interfaces/IInfraStorage.sol";
 //import {IOwner} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IOwner.sol";
 import {DexSwap} from "contracts/DexSwap.sol";
+import {PauseDummy} from "contracts/PauseDummy.sol";
 
 contract BaseTest is Test {
     /*//////////////////////////////////////////////////////////////
@@ -33,10 +34,13 @@ contract BaseTest is Test {
     ParentPool public parentPoolImplementation;
     TransparentUpgradeableProxy public parentPoolProxy;
     LPToken public lpToken;
-    DexSwap public dexSwap;
+
+    DexSwap public baseDexSwap;
+    DexSwap public arbitrumDexSwap;
+    DexSwap public polygonDexSwap;
+    DexSwap public avalancheDexSwap;
+
     FunctionsSubscriptions public functionsSubscriptions;
-    //    CCIPLocalSimulator public ccipLocalSimulator;
-    //    CCIPLocalSimulatorFork public ccipLocalSimulatorFork;
 
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");
@@ -44,7 +48,13 @@ contract BaseTest is Test {
 
     address internal deployer = vm.envAddress("FORGE_DEPLOYER_ADDRESS");
     address internal proxyDeployer = vm.envAddress("FORGE_PROXY_DEPLOYER_ADDRESS");
-    uint256 internal baseAnvilForkId = vm.createFork(vm.envString("LOCAL_BASE_FORK_RPC_URL"));
+    uint256 internal baseForkId = vm.createFork(vm.envString("LOCAL_BASE_FORK_RPC_URL"));
+    uint256 internal arbitrumForkId =
+        vm.createFork(vm.envString("LOCAL_ARBITRUM_FORK_RPC_URL"), 276843772);
+    uint256 internal polygonForkId =
+        vm.createFork(vm.envString("LOCAL_POLYGON_FORK_RPC_URL"), 64588691);
+    uint256 internal avalancheForkId =
+        vm.createFork(vm.envString("LOCAL_AVALANCHE_FORK_RPC_URL"), 53397798);
 
     uint64 internal baseChainSelector = uint64(vm.envUint("CL_CCIP_CHAIN_SELECTOR_BASE"));
     uint64 internal optimismChainSelector = uint64(vm.envUint("CL_CCIP_CHAIN_SELECTOR_OPTIMISM"));
@@ -59,33 +69,38 @@ contract BaseTest is Test {
     ConceroBridge internal baseBridgeImplementation;
     ConceroBridge internal arbitrumBridgeImplementation;
     ConceroBridge internal avalancheBridgeImplementation;
+    ConceroBridge internal polygonBridgeImplementation;
 
     TransparentUpgradeableProxy internal baseOrchestratorProxy;
+    TransparentUpgradeableProxy internal arbitrumOrchestratorProxy;
+    TransparentUpgradeableProxy internal polygonOrchestratorProxy;
+    TransparentUpgradeableProxy internal avalancheOrchestratorProxy;
+
     InfraOrchestrator internal baseOrchestratorImplementation;
-    address internal arbitrumOrchestratorProxy = address(1);
-    address internal avalancheOrchestratorProxy = address(2);
+    InfraOrchestrator internal arbitrumOrchestratorImplementation;
+    InfraOrchestrator internal polygonOrchestratorImplementation;
+    InfraOrchestrator internal avalancheOrchestratorImplementation;
+
+    /*//////////////////////////////////////////////////////////////
+                                 MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+    modifier setFork(uint256 forkId) {
+        vm.selectFork(forkId);
+        _;
+        //vm.selectFork(baseAnvilForkId);
+    }
 
     /*//////////////////////////////////////////////////////////////
                                  SETUP
     //////////////////////////////////////////////////////////////*/
     function setUp() public virtual {
-        vm.selectFork(baseAnvilForkId);
+        vm.selectFork(baseForkId);
 
         _deployOrchestratorProxy();
-        deployInfra();
-        deployPoolsInfra();
-        _deployOrchestratorImplementation();
-
-        _setProxyImplementation(
-            address(baseOrchestratorProxy),
-            address(baseOrchestratorImplementation)
-        );
-
-        _setDstInfraContractsForInfra(
-            address(baseOrchestratorProxy),
-            arbitrumChainSelector,
-            arbitrumOrchestratorProxy
-        );
+        deployArbitrumInfra();
+        deployBaseInfra();
+        deployPolygonInfra();
+        deployAvalancheInfra();
     }
 
     function deployPoolsInfra() public {
@@ -104,6 +119,50 @@ contract BaseTest is Test {
         _deployArbitrumBridgeImplementation();
         _deployAvalancheBridgeImplementation();
         addFunctionsConsumer(address(baseOrchestratorProxy));
+    }
+
+    function deployArbitrumInfra() public setFork(arbitrumForkId) {
+        _deployOrchestratorProxyArbitrum();
+        _deployDexSwapArbitrum();
+        _deployOrchestratorImplementationArbitrum();
+
+        _setProxyImplementation(
+            address(arbitrumOrchestratorProxy),
+            address(arbitrumOrchestratorImplementation)
+        );
+    }
+
+    function deployBaseInfra() public setFork(baseForkId) {
+        _deployOrchestratorProxyBase();
+        _deployDexSwapBase();
+        _deployOrchestratorImplementationBase();
+
+        _setProxyImplementation(
+            address(baseOrchestratorProxy),
+            address(baseOrchestratorImplementation)
+        );
+    }
+
+    function deployPolygonInfra() public setFork(polygonForkId) {
+        _deployOrchestratorProxyPolygon();
+        _deployDexSwapPolygon();
+        _deployOrchestratorImplementationPolygon();
+
+        _setProxyImplementation(
+            address(polygonOrchestratorProxy),
+            address(polygonOrchestratorImplementation)
+        );
+    }
+
+    function deployAvalancheInfra() public setFork(avalancheForkId) {
+        _deployOrchestratorProxyAvalanche();
+        _deployDexSwapAvalanche();
+        _deployOrchestratorImplementationAvalanche();
+
+        _setProxyImplementation(
+            address(avalancheOrchestratorProxy),
+            address(avalancheOrchestratorImplementation)
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -177,34 +236,6 @@ contract BaseTest is Test {
         lpToken = new LPToken(deployer, address(parentPoolProxy));
         vm.stopPrank();
     }
-
-    //    function _deployCCIPLocalSimulatorFork() internal {
-    //        uint256 BASE_CHAIN_ID = 8453;
-    //
-    //        ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
-    //        vm.makePersistent(address(ccipLocalSimulatorFork));
-    //
-    //        Register.NetworkDetails memory baseDetails = Register.NetworkDetails({
-    //            chainSelector: uint64(vm.envUint("CL_CCIP_CHAIN_SELECTOR_BASE")),
-    //            routerAddress: vm.envAddress("CL_CCIP_ROUTER_BASE"),
-    //            linkAddress: vm.envAddress("LINK_BASE"),
-    //            wrappedNativeAddress: 0x4200000000000000000000000000000000000006,
-    //            ccipBnMAddress: address(0),
-    //            ccipLnMAddress: address(0),
-    //            rmnProxyAddress: address(0),
-    //            registryModuleOwnerCustomAddress: address(0),
-    //            tokenAdminRegistryAddress: address(0)
-    //        });
-    //
-    //        ccipLocalSimulatorFork.setNetworkDetails(BASE_CHAIN_ID, baseDetails);
-    //    }
-    //
-    //    function _deployCcipLocalSimulation() private {
-    //        ccipLocalSimulator = new CCIPLocalSimulator();
-    //        ccipLocalSimulator.configuration();
-    //        //        vm.prank(IOwner(vm.envAddress("USDC_BASE")).owner());
-    //        ccipLocalSimulator.supportNewTokenViaOwner(vm.envAddress("USDC_BASE"));
-    //    }
 
     /*//////////////////////////////////////////////////////////////
                                 SETTERS
@@ -423,7 +454,7 @@ contract BaseTest is Test {
         address ccipRouter = vm.envAddress("CL_CCIP_ROUTER_ARBITRUM");
         address dexswap = vm.envAddress("CONCERO_DEX_SWAP_ARBITRUM");
         address pool = address(parentPoolProxy);
-        address proxy = address(0); // arbitrumOrchestratorProxy
+        address proxy = address(arbitrumOrchestratorProxy); //address(0); // arbitrumOrchestratorProxy
         address[3] memory messengers = [
             vm.envAddress("POOL_MESSENGER_0_ADDRESS"),
             address(0),
@@ -489,6 +520,66 @@ contract BaseTest is Test {
         vm.stopPrank();
     }
 
+    function _deployOrchestratorProxyArbitrum() internal {
+        vm.prank(proxyDeployer);
+        address pauseContract = vm.envAddress("CONCERO_PAUSE_ARBITRUM");
+        if (pauseContract.code.length == 0) {
+            pauseContract = address(new PauseDummy());
+        }
+
+        arbitrumOrchestratorProxy = new TransparentUpgradeableProxy(
+            pauseContract,
+            proxyDeployer,
+            bytes("")
+        );
+        vm.stopPrank();
+    }
+
+    function _deployOrchestratorProxyBase() internal {
+        vm.prank(proxyDeployer);
+        address pauseContract = vm.envAddress("CONCERO_PAUSE_BASE");
+        if (pauseContract.code.length == 0) {
+            pauseContract = address(new PauseDummy());
+        }
+
+        baseOrchestratorProxy = new TransparentUpgradeableProxy(
+            pauseContract,
+            proxyDeployer,
+            bytes("")
+        );
+        vm.stopPrank();
+    }
+
+    function _deployOrchestratorProxyPolygon() internal {
+        vm.prank(proxyDeployer);
+        address pauseContract = vm.envAddress("CONCERO_PAUSE_POLYGON");
+        if (pauseContract.code.length == 0) {
+            pauseContract = address(new PauseDummy());
+        }
+
+        polygonOrchestratorProxy = new TransparentUpgradeableProxy(
+            pauseContract,
+            proxyDeployer,
+            bytes("")
+        );
+        vm.stopPrank();
+    }
+
+    function _deployOrchestratorProxyAvalanche() internal {
+        vm.prank(proxyDeployer);
+        address pauseContract = vm.envAddress("CONCERO_PAUSE_AVALANCHE");
+        if (pauseContract.code.length == 0) {
+            pauseContract = address(new PauseDummy());
+        }
+
+        avalancheOrchestratorProxy = new TransparentUpgradeableProxy(
+            pauseContract,
+            proxyDeployer,
+            bytes("")
+        );
+        vm.stopPrank();
+    }
+
     function _deployOrchestratorImplementation() internal {
         vm.prank(deployer);
         baseOrchestratorImplementation = new InfraOrchestrator(
@@ -498,6 +589,58 @@ contract BaseTest is Test {
             address(parentPoolProxy),
             address(baseOrchestratorProxy),
             1, // IInfraStorage.Chain.base
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
+    function _deployOrchestratorImplementationArbitrum() internal {
+        vm.prank(deployer);
+        arbitrumOrchestratorImplementation = new InfraOrchestrator(
+            vm.envAddress("CLF_ROUTER_ARBITRUM"),
+            address(arbitrumDexSwap),
+            address(arbitrumBridgeImplementation),
+            address(parentPoolProxy),
+            address(arbitrumOrchestratorProxy),
+            0, // IInfraStorage.Chain.base
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
+    function _deployOrchestratorImplementationBase() internal {
+        vm.prank(deployer);
+        baseOrchestratorImplementation = new InfraOrchestrator(
+            vm.envAddress("CLF_ROUTER_BASE"),
+            address(baseDexSwap),
+            address(baseBridgeImplementation),
+            address(parentPoolProxy),
+            address(baseOrchestratorProxy),
+            1, // IInfraStorage.Chain.base
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
+    function _deployOrchestratorImplementationPolygon() internal {
+        vm.prank(deployer);
+        polygonOrchestratorImplementation = new InfraOrchestrator(
+            vm.envAddress("CLF_ROUTER_POLYGON"),
+            address(polygonDexSwap),
+            address(polygonBridgeImplementation),
+            address(parentPoolProxy),
+            address(polygonOrchestratorProxy),
+            3, // IInfraStorage.Chain.pol
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
+    function _deployOrchestratorImplementationAvalanche() internal {
+        vm.prank(deployer);
+        avalancheOrchestratorImplementation = new InfraOrchestrator(
+            vm.envAddress("CLF_ROUTER_AVALANCHE"),
+            address(avalancheDexSwap),
+            address(avalancheBridgeImplementation),
+            address(parentPoolProxy),
+            address(avalancheOrchestratorProxy),
+            4, // IInfraStorage.Chain.avax
             [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
         );
     }
@@ -568,13 +711,38 @@ contract BaseTest is Test {
     /*//////////////////////////////////////////////////////////////
                                 DEXSWAP
     //////////////////////////////////////////////////////////////*/
-    function _deployDexSwap() internal {
+    function _deployDexSwapArbitrum() internal {
         vm.prank(deployer);
-        dexSwap = new DexSwap(
+        arbitrumDexSwap = new DexSwap(
+            address(arbitrumOrchestratorProxy),
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
+    function _deployDexSwapBase() internal {
+        vm.prank(deployer);
+        baseDexSwap = new DexSwap(
             address(baseOrchestratorProxy),
             [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
         );
     }
+
+    function _deployDexSwapPolygon() internal {
+        vm.prank(deployer);
+        polygonDexSwap = new DexSwap(
+            address(polygonOrchestratorProxy),
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
+    function _deployDexSwapAvalanche() internal {
+        vm.prank(deployer);
+        avalancheDexSwap = new DexSwap(
+            address(avalancheOrchestratorProxy),
+            [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
+        );
+    }
+
     function _getBaseInfraImplementationConstructorArgs()
         internal
         returns (address, address, address, address, address, uint8, address[3] memory)
