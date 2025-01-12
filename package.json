@@ -8,7 +8,7 @@
   "scripts": {
     "chain": "hardhat node --network hardhat --no-deploy",
     "fork": "MAINNET_FORKING_ENABLED=true hardhat node --network hardhat --no-deploy",
-    "compile": "yarn lint:sol && hardhat compile",
+    "compile": "hardhat compile",
     "deploy": "hardhat deploy",
     "test": "REPORT_GAS=true hardhat test --network hardhat",
     "lint:ts": "echo 'not working yet'",

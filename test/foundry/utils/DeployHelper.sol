@@ -176,9 +176,10 @@ contract DeployHelper is Script {
         }
 
         if (chainId == vm.envUint("ARBITRUM_CHAIN_ID")) {
-            address[] memory routers = new address[](2);
+            address[] memory routers = new address[](3);
             routers[0] = vm.envAddress("UNISWAP_ROUTER_ARBITRUM");
             routers[1] = vm.envAddress("WETH_ARBITRUM");
+            routers[2] = vm.envAddress("SUSHISWAP_ROUTER_ARBITRUM");
             return routers;
         }
 

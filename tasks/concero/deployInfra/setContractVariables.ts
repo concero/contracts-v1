@@ -269,7 +269,12 @@ export async function setDonSecretsSlotId(deployableChain: CNetwork, slotId: num
 }
 
 const allowedRoutersByChain: Record<Partial<CNetworkNames>, Array<Address>> = {
-  arbitrum: [getEnvVar("SUSHISWAP_ROUTER_ARBITRUM"), getEnvVar("UNISWAP_ROUTER_ARBITRUM"), getEnvVar("WETH_ARBITRUM")],
+  arbitrum: [
+    getEnvVar("SUSHISWAP_ROUTER_ARBITRUM"),
+    // getEnvVar("UNISWAP_ROUTER_ARBITRUM"),
+    // getEnvVar("WETH_ARBITRUM"),
+    // getEnvVar("UNI_02_ROUTER_ARBITRUM"),
+  ] as Array<Address>,
 };
 
 export async function setDexSwapAllowedRouters(deployableChain: CNetwork, abi: any) {
