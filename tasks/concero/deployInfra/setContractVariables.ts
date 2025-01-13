@@ -275,6 +275,7 @@ const allowedRoutersByChain: Record<Partial<CNetworkNames>, Array<Address>> = {
     // getEnvVar("WETH_ARBITRUM"),
     // getEnvVar("UNI_02_ROUTER_ARBITRUM"),
   ] as Array<Address>,
+  polygon: [getEnvVar("SUSHISWAP_ROUTER_POLYGON")],
 };
 
 export async function setDexSwapAllowedRouters(deployableChain: CNetwork, abi: any) {
