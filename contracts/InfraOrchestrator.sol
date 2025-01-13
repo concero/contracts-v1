@@ -426,7 +426,7 @@ contract InfraOrchestrator is
         return integratorFeeAmount;
     }
 
-    /* DEPRECATED FUNCTIONS */
+    /* DEPRECATED FUNCTIONS START */
 
     modifier validateSrcSwapData_DEPRECATED(IDexSwap.SwapData_DEPRECATED[] memory swapData) {
         if (swapData.length == 0 || swapData.length > 5 || swapData[0].fromAmount == 0) {
@@ -511,4 +511,6 @@ contract InfraOrchestrator is
 
         return swapData;
     }
+
+    /* DEPRECATED FUNCTIONS END */
 }
