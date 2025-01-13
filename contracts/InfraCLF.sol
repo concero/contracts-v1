@@ -251,10 +251,77 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
         s_requests[reqId].conceroMessageId = conceroMessageId;
     }
 
-    /**
-     * @notice Internal CLF function to finalize bridge process on Destination
-     * @param response the response from the CLF
-     */
+    //    /**
+    //     * @notice Internal CLF function to finalize bridge process on Destination
+    //     * @param response the response from the CLF
+    //     */
+    //    function _handleDstFunctionsResponse(bytes32 requestId, bytes memory response) internal {
+    //        bytes32 conceroMessageId = s_requests[requestId].conceroMessageId;
+    //        bytes32 txDataHash = s_transactions[conceroMessageId].txDataHash;
+    //
+    //        if (txDataHash == bytes32(0)) {
+    //            revert TxDoesntExist();
+    //        }
+    //
+    //        if (s_transactions[conceroMessageId].isConfirmed) {
+    //            revert TxAlreadyConfirmed();
+    //        } else {
+    //            s_transactions[conceroMessageId].isConfirmed = true;
+    //        }
+    //
+    //        (
+    //            address receiver,
+    //            uint256 amount,
+    //            bytes memory compressedDstSwapData
+    //        ) = _decodeDstClfResponse(response);
+    //
+    //        {
+    //            bytes32 recomputedTxDataHash = keccak256(
+    //                abi.encode(
+    //                    conceroMessageId,
+    //                    amount,
+    //                    i_chainSelector,
+    //                    receiver,
+    //                    keccak256(compressedDstSwapData)
+    //                )
+    //            );
+    //
+    //            if (recomputedTxDataHash != txDataHash) {
+    //                revert TxDataHashSumMismatch();
+    //            }
+    //        }
+    //
+    //        address bridgeableTokenDst = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
+    //        uint256 amountUsdcAfterFees = amount - getDstTotalFeeInUsdc(amount);
+    //        IDexSwap.SwapData_DEPRECATED[] memory swapData = _decompressSwapData(compressedDstSwapData);
+    //
+    //        if (swapData.length == 0) {
+    //            IPool(i_poolProxy).takeLoan(bridgeableTokenDst, amountUsdcAfterFees, receiver);
+    //        } else {
+    //            _performDstSwap(
+    //                swapData,
+    //                amountUsdcAfterFees,
+    //                conceroMessageId,
+    //                receiver,
+    //                bridgeableTokenDst
+    //            );
+    //        }
+    //
+    //        emit TXReleased(conceroMessageId, receiver, bridgeableTokenDst, amountUsdcAfterFees);
+    //    }
+
+    function decompressSwapData_DEPRECATED(
+        bytes memory compressedDstSwapData
+    ) external pure returns (IDexSwap.SwapData_DEPRECATED[] memory swapData) {
+        bytes memory decompressedDstSwapData = LibZip.cdDecompress(compressedDstSwapData);
+
+        if (decompressedDstSwapData.length == 0) {
+            return new IDexSwap.SwapData_DEPRECATED[](0);
+        } else {
+            return abi.decode(decompressedDstSwapData, (IDexSwap.SwapData_DEPRECATED[]));
+        }
+    }
+
     function _handleDstFunctionsResponse(bytes32 requestId, bytes memory response) internal {
         bytes32 conceroMessageId = s_requests[requestId].conceroMessageId;
         bytes32 txDataHash = s_transactions[conceroMessageId].txDataHash;
@@ -293,25 +360,42 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
 
         address bridgeableTokenDst = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
         uint256 amountUsdcAfterFees = amount - getDstTotalFeeInUsdc(amount);
-        IDexSwap.SwapData_DEPRECATED[] memory swapData = _decompressSwapData(compressedDstSwapData);
 
-        if (swapData.length == 0) {
-            IPool(i_poolProxy).takeLoan(bridgeableTokenDst, amountUsdcAfterFees, receiver);
-        } else {
-            _performDstSwap(
-                swapData,
-                amountUsdcAfterFees,
-                conceroMessageId,
-                receiver,
-                bridgeableTokenDst
-            );
+        try this.decompressSwapData_DEPRECATED(compressedDstSwapData) returns (
+            IDexSwap.SwapData_DEPRECATED[] memory swapData
+        ) {
+            if (swapData.length == 0) {
+                IPool(i_poolProxy).takeLoan(bridgeableTokenDst, amountUsdcAfterFees, receiver);
+            } else {
+                _performDstSwap(
+                    swapData,
+                    amountUsdcAfterFees,
+                    conceroMessageId,
+                    receiver,
+                    bridgeableTokenDst
+                );
+            }
+        } catch {
+            IDexSwap.SwapData[] memory updatedSwapData = _decompressSwapData(compressedDstSwapData);
+
+            if (updatedSwapData.length == 0) {
+                IPool(i_poolProxy).takeLoan(bridgeableTokenDst, amountUsdcAfterFees, receiver);
+            } else {
+                _performDstSwap(
+                    updatedSwapData,
+                    amountUsdcAfterFees,
+                    conceroMessageId,
+                    receiver,
+                    bridgeableTokenDst
+                );
+            }
         }
 
         emit TXReleased(conceroMessageId, receiver, bridgeableTokenDst, amountUsdcAfterFees);
     }
 
     function _performDstSwap(
-        IDexSwap.SwapData_DEPRECATED[] memory swapData,
+        IDexSwap.SwapData[] memory swapData,
         uint256 amountUsdcAfterFees,
         bytes32 conceroMessageId,
         address receiver,
@@ -341,15 +425,46 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
         }
     }
 
+    function _performDstSwap(
+        IDexSwap.SwapData_DEPRECATED[] memory swapData,
+        uint256 amountUsdcAfterFees,
+        bytes32 conceroMessageId,
+        address receiver,
+        address bridgeableTokenDst
+    ) internal {
+        //todo: remove with new DexSwap contract
+        //TODO: when validation fails, take loan and fulfil bridge TX
+        if (swapData.length > 5) {
+            revert InvalidSwapData();
+        }
+
+        swapData[0].fromAmount = amountUsdcAfterFees;
+        swapData[0].fromToken = bridgeableTokenDst;
+
+        IPool(i_poolProxy).takeLoan(bridgeableTokenDst, amountUsdcAfterFees, address(this));
+
+        bytes memory swapDataArgs = abi.encodeWithSelector(
+            IDexSwap.entrypoint_DEPRECATED.selector,
+            swapData,
+            receiver
+        );
+
+        (bool success, ) = i_dexSwap.delegatecall(swapDataArgs);
+        if (!success) {
+            LibConcero.transferERC20(bridgeableTokenDst, amountUsdcAfterFees, receiver);
+            emit DstSwapFailed(conceroMessageId);
+        }
+    }
+
     function _decompressSwapData(
         bytes memory compressedDstSwapData
-    ) internal pure returns (IDexSwap.SwapData_DEPRECATED[] memory swapData) {
+    ) internal pure returns (IDexSwap.SwapData[] memory swapData) {
         bytes memory decompressedDstSwapData = LibZip.cdDecompress(compressedDstSwapData);
 
         if (decompressedDstSwapData.length == 0) {
-            return new IDexSwap.SwapData_DEPRECATED[](0);
+            return new IDexSwap.SwapData[](0);
         } else {
-            return abi.decode(decompressedDstSwapData, (IDexSwap.SwapData_DEPRECATED[]));
+            return abi.decode(decompressedDstSwapData, (IDexSwap.SwapData[]));
         }
     }
 
