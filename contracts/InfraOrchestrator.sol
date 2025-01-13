@@ -107,7 +107,6 @@ contract InfraOrchestrator is
     ) external returns (uint256) {
         bytes memory delegateCallArgs = abi.encodeWithSelector(
             IConceroBridge.getSrcTotalFeeInUSDC.selector,
-            tokenType,
             dstChainSelector,
             amount
         );
