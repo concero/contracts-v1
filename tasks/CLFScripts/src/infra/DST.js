@@ -81,6 +81,15 @@
 				confirmations: 3n,
 				chainId: '0xa86a',
 			},
+			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}').toString(16)}`]: {
+				urls: [
+					'https://optimism-rpc.publicnode.com',
+					'https://rpc.ankr.com/optimism',
+					'https://optimism.drpc.org',
+				],
+				confirmations: 3n,
+				chainId: '0xa',
+			},
 		};
 
 		class FunctionsJsonRpcProvider extends ethers.JsonRpcProvider {
@@ -108,22 +117,17 @@
 		const ethersId = ethers.id('ConceroBridgeSent(bytes32,uint256,uint64,address,bytes)');
 		const contract = new ethers.Interface(abi);
 
-		const fallBackProviders = chainMap[srcChainSelector].urls.map(url => {
-			return {
-				provider: new FunctionsJsonRpcProvider(url),
-				priority: Math.random(),
-				stallTimeout: 2000,
-				weight: 1,
-			};
-		});
+		const url = chainMap[srcChainSelector].urls[Math.floor(Math.random() * chainMap[srcChainSelector].urls.length)];
 
-		const provider = new ethers.FallbackProvider(fallBackProviders, null, {quorum: 1});
+		const provider = new FunctionsJsonRpcProvider(url);
 		let latestBlockNumber = BigInt(await provider.getBlockNumber());
+		const confirmations = chainMap[srcChainSelector].confirmations;
 
 		const logs = await provider.getLogs({
 			address: srcContractAddress,
 			topics: [ethersId, conceroMessageId],
-			fromBlock: latestBlockNumber - 1000n,
+			// @dev for new blockchains with blockNumber < 1000
+			fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
 			toBlock: latestBlockNumber,
 		});
 
@@ -134,7 +138,7 @@
 		const log = logs[0];
 		const logBlockNumber = BigInt(log.blockNumber);
 
-		while (latestBlockNumber - logBlockNumber < chainMap[srcChainSelector].confirmations) {
+		while (latestBlockNumber - logBlockNumber < confirmations) {
 			await sleep(5000);
 			latestBlockNumber = BigInt(await provider.getBlockNumber());
 		}

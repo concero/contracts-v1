@@ -56,6 +56,16 @@
 				usdcAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 				poolAddress: '0x0AE1B2730066AD46481ab0a5fd2B5893f8aBa323',
 			},
+			['3734403246176062136']: {
+				urls: [
+					'https://optimism-rpc.publicnode.com',
+					'https://rpc.ankr.com/optimism',
+					'https://optimism.drpc.org',
+				],
+				chainId: '0xa',
+				usdcAddress: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+				poolAddress: '0x8698c6DF1E354Ce3ED0dE508EF7AF4baB85D2F2D',
+			},
 		};
 		let chainsMap;
 		const chainIdNumber = parseInt(chainId, 16);

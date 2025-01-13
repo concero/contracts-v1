@@ -43,6 +43,9 @@ export const networkEnvKeys: Record<string, string> = {
   avalancheFuji: "FUJI",
   baseSepolia: "BASE_SEPOLIA",
   polygonAmoy: "POLYGON_AMOY",
+  // localhost
+  localhost: "LOCALHOST",
+  hardhat: "HARDHAT",
 };
 
 export const functionsGatewayUrls = {
@@ -69,6 +72,7 @@ export const conceroNetworks: Record<CNetworkNames, CNetwork> = {
     ccipRouter: process.env.CL_CCIP_ROUTER_SEPOLIA,
   } as HardhatNetworkUserConfig,
   hardhat: {
+    type: networkTypes.testnet,
     chainId: 31337,
     forking: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
@@ -81,7 +85,7 @@ export const conceroNetworks: Record<CNetworkNames, CNetwork> = {
         balance: "10000000000000000000000",
       },
       {
-        privateKey: deployerPK,
+        privateKey: proxyDeployerPK,
         balance: "10000000000000000000000",
       },
     ],
@@ -301,7 +305,7 @@ export const conceroNetworks: Record<CNetworkNames, CNetwork> = {
     type: networkTypes.mainnet,
     saveDeployments,
     chainId: 8453,
-    url: urls.arbitrum[0],
+    url: urls.base[0],
     rpcs: urls.base,
     accounts: [deployerPK, proxyDeployerPK],
     functionsDonId: process.env.CLF_DONID_BASE,

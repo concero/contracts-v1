@@ -322,37 +322,37 @@ contract ParentPoolCLFCLA is
     /**
      * @notice Function to update cross-chain rewards which will be paid to liquidity providers in the end of
      * withdraw period.
-     * @param _withdrawalRequest - pointer to the WithdrawRequest struct
-     * @param _childPoolsLiquidity The total liquidity of all child pools
+     * @param withdrawalId - pointer to the WithdrawRequest struct
+     * @param childPoolsLiquidity The total liquidity of all child pools
      * @dev This function must be called only by an allowed Messenger & must not revert
      * @dev _totalUSDCCrossChainBalance MUST have 10**6 decimals.
      */
     function _updateWithdrawalRequest(
-        IParentPool.WithdrawRequest storage _withdrawalRequest,
-        bytes32 _withdrawalId,
-        uint256 _childPoolsLiquidity
+        IParentPool.WithdrawRequest storage withdrawalRequest,
+        bytes32 withdrawalId,
+        uint256 childPoolsLiquidity
     ) private {
-        uint256 lpToBurn = _withdrawalRequest.lpAmountToBurn;
+        uint256 lpToBurn = withdrawalRequest.lpAmountToBurn;
         uint256 childPoolsCount = s_poolChainSelectors.length;
 
         uint256 amountToWithdrawWithUsdcDecimals = _calculateWithdrawableAmount(
-            _childPoolsLiquidity,
+            childPoolsLiquidity,
             lpToBurn,
             i_lpToken.totalSupply()
         );
         uint256 withdrawalPortionPerPool = amountToWithdrawWithUsdcDecimals / (childPoolsCount + 1);
 
-        _withdrawalRequest.amountToWithdraw = amountToWithdrawWithUsdcDecimals;
-        _withdrawalRequest.liquidityRequestedFromEachPool = withdrawalPortionPerPool;
-        _withdrawalRequest.remainingLiquidityFromChildPools =
+        withdrawalRequest.amountToWithdraw = amountToWithdrawWithUsdcDecimals;
+        withdrawalRequest.liquidityRequestedFromEachPool = withdrawalPortionPerPool;
+        withdrawalRequest.remainingLiquidityFromChildPools =
             amountToWithdrawWithUsdcDecimals -
             withdrawalPortionPerPool;
-        _withdrawalRequest.triggeredAtTimestamp = block.timestamp + WITHDRAWAL_COOLDOWN_SECONDS;
+        withdrawalRequest.triggeredAtTimestamp = block.timestamp + WITHDRAWAL_COOLDOWN_SECONDS;
 
-        s_withdrawalRequestIds.push(_withdrawalId);
+        s_withdrawalRequestIds.push(withdrawalId);
         emit WithdrawalRequestInitiated(
-            _withdrawalId,
-            msg.sender,
+            withdrawalId,
+            withdrawalRequest.lpAddress,
             block.timestamp + WITHDRAWAL_COOLDOWN_SECONDS
         );
     }

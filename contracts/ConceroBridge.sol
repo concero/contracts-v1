@@ -12,7 +12,7 @@ import {InfraCCIP} from "./InfraCCIP.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
 
 /* ERRORS */
-///@notice error emitted when the input amount is less than the fees
+/// @notice error emitted when the input amount is less than the fees
 error InsufficientFees();
 
 contract ConceroBridge is IConceroBridge, InfraCCIP {

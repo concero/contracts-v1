@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { SubscriptionManager, TransactionOptions } from "@chainlink/functions-toolkit";
-
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { conceroNetworks } from "../../../constants";
 
 task("clf-sub-transfer", "Request ownership of an Functions subscription be transferred to a new address")
   .addParam("subid", "Subscription ID")
@@ -34,7 +34,7 @@ task("clf-sub-transfer", "Request ownership of an Functions subscription be tran
 
     console.log(`\nRequesting transfer of subscription ${subscriptionId} to new owner ${newOwner}`);
 
-    const requestTransferTx = await sm.requestSubscriptionTransfer({ subscriptionId, newOwner, txOptions });
+    const requestTransferTx = await sm.requestSubscriptionTransfer({ subscriptionId, newOwner });
 
     console.log(
       `Transfer request completed in Tx: ${requestTransferTx.transactionHash}\nAccount ${newOwner} needs to accept transfer for it to complete.`,

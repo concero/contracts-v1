@@ -318,7 +318,7 @@ export async function setFunctionsPremiumFees(deployableChain: CNetwork, abi: an
 
   for (const chain of chainsToSet) {
     try {
-      const feeToSet = clfFees[dcName] ?? defaultCLFfee;
+      const feeToSet = clfFees[chain.name] ?? defaultCLFfee;
       const { request: setFunctionsPremiumFeesReq } = await publicClient.simulateContract({
         address: conceroProxy,
         abi,

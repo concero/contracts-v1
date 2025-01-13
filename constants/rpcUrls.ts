@@ -20,8 +20,8 @@ export const rpc: Record<string, string> = {
 
 export const urls: Record<string, string[]> = {
   ethereum: [
-    `https://lb.drpc.org/ogrpc?network=ethereum&dkey=${DRPC_API_KEY}`,
     `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+    `https://lb.drpc.org/ogrpc?network=ethereum&dkey=${DRPC_API_KEY}`,
     `https://eth-mainnet.blastapi.io/${BLAST_API_KEY}`,
     "https://rpc.ankr.com/eth",
   ],

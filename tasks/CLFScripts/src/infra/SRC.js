@@ -6,7 +6,13 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 /*BUILD_REMOVES_EVERYTHING_ABOVE_THIS_LINE*/
 
 (async () => {
-	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] = bytesArgs;
+	const [_, __, ___, dstContractAddress, conceroMessageId, srcChainSelector, dstChainSelector, txDataHash] =
+		bytesArgs;
+	const messengerPrivetKeys = [
+		secrets.MESSENGER_0_PRIVATE_KEY,
+		secrets.MESSENGER_1_PRIVATE_KEY,
+		secrets.MESSENGER_2_PRIVATE_KEY,
+	];
 	const chainSelectors = {
 		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_FUJI}').toString(16)}`]: {
 			urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],
@@ -22,7 +28,10 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			},
 		},
 		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_SEPOLIA}').toString(16)}`]: {
-			urls: [`https://sepolia.infura.io/v3/${secrets.INFURA_API_KEY}`, 'https://ethereum-sepolia-rpc.publicnode.com'],
+			urls: [
+				`https://sepolia.infura.io/v3/${secrets.INFURA_API_KEY}`,
+				'https://ethereum-sepolia-rpc.publicnode.com',
+			],
 			chainId: '0xaa36a7',
 			nativeCurrency: 'eth',
 			priceFeed: {
@@ -77,7 +86,10 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			},
 		},
 		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_POLYGON_AMOY}').toString(16)}`]: {
-			urls: [`https://polygon-amoy.infura.io/v3/${secrets.INFURA_API_KEY}`, 'https://polygon-amoy-bor-rpc.publicnode.com'],
+			urls: [
+				`https://polygon-amoy.infura.io/v3/${secrets.INFURA_API_KEY}`,
+				'https://polygon-amoy-bor-rpc.publicnode.com',
+			],
 			chainId: '0x13882',
 			nativeCurrency: 'matic',
 			priceFeed: {
@@ -141,15 +153,38 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 				maticUsd: '${MATIC_USD_PRICEFEED_AVALANCHE}',
 			},
 		},
+		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}').toString(16)}`]: {
+			urls: ['https://optimism-rpc.publicnode.com', 'https://rpc.ankr.com/optimism', 'https://optimism.drpc.org'],
+			chainId: '0xa',
+			nativeCurrency: 'eth',
+			priceFeed: {
+				linkUsd: '${LINK_USD_PRICEFEED_OPTIMISM}',
+				usdcUsd: '${USDC_USD_PRICEFEED_OPTIMISM}',
+				nativeUsd: '${NATIVE_USD_PRICEFEED_OPTIMISM}',
+				linkNative: '${LINK_NATIVE_PRICEFEED_OPTIMISM}',
+				ethUsd: '${ETH_USD_PRICEFEED_OPTIMISM}',
+				maticUsd: '${MATIC_USD_PRICEFEED_OPTIMISM}',
+			},
+		},
 	};
 	const UINT256_BYTES_LENGTH = 32;
 	const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 	const getPercent = (value, percent) => (BigInt(value) * BigInt(percent)) / 100n;
 	const getPriceRates = async (provider, chainSelector) => {
-		const priceFeedsAbi = ['function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80)'];
+		const priceFeedsAbi = [
+			'function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80)',
+		];
 
-		const linkUsdContract = new ethers.Contract(chainSelectors[chainSelector].priceFeed.linkUsd, priceFeedsAbi, provider);
-		const usdcUsdContract = new ethers.Contract(chainSelectors[chainSelector].priceFeed.usdcUsd, priceFeedsAbi, provider);
+		const linkUsdContract = new ethers.Contract(
+			chainSelectors[chainSelector].priceFeed.linkUsd,
+			priceFeedsAbi,
+			provider,
+		);
+		const usdcUsdContract = new ethers.Contract(
+			chainSelectors[chainSelector].priceFeed.usdcUsd,
+			priceFeedsAbi,
+			provider,
+		);
 		const nativeUsdContract = new ethers.Contract(
 			chainSelectors[chainSelector].priceFeed.nativeUsd,
 			priceFeedsAbi,
@@ -185,7 +220,11 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			promises.push(promiseUndefined());
 		}
 		if (chainSelectors[chainSelector].priceFeed.ethUsd) {
-			const ethUsdContract = new ethers.Contract(chainSelectors[chainSelector].priceFeed.ethUsd, priceFeedsAbi, provider);
+			const ethUsdContract = new ethers.Contract(
+				chainSelectors[chainSelector].priceFeed.ethUsd,
+				priceFeedsAbi,
+				provider,
+			);
 			promises.push(ethUsdContract.latestRoundData());
 		} else {
 			promises.push(promiseUndefined());
@@ -231,7 +270,7 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			if (dstAssetUsdPriceFeed === undefined) return 1n;
 
 			const srcNativeDstNativeRate = nativeUsdPriceFeed / dstAssetUsdPriceFeed;
-			if (srcNativeDstNativeRate === 0n) return 1n;
+			if (BigInt(srcNativeDstNativeRate) === 0n) return 1n;
 
 			const dstGasPriceInSrcCurrency = gasPriceInDstCurrency / srcNativeDstNativeRate;
 
@@ -242,7 +281,11 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 		const dstNativeCurrency = chainSelectors[dstChainSelector].nativeCurrency;
 
 		if (srcNativeCurrency !== dstNativeCurrency) {
-			return getGasPriceByPriceFeeds(srcPriceFeeds.nativeUsd, srcPriceFeeds[`${dstNativeCurrency}Usd`], _gasPrice);
+			return getGasPriceByPriceFeeds(
+				srcPriceFeeds.nativeUsd,
+				srcPriceFeeds[`${dstNativeCurrency}Usd`],
+				_gasPrice,
+			);
 		}
 
 		return _gasPrice;
@@ -251,7 +294,8 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 	let nonce = 0;
 	let retries = 0;
 	let gasPrice;
-	// let maxPriorityFeePerGas;
+	let maxPriorityFeePerGas;
+	let maxFeePerGas;
 
 	const sendTransaction = async (contract, signer, txOptions) => {
 		try {
@@ -305,29 +349,37 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			}
 		}
 		const dstUrl =
-			chainSelectors[dstChainSelector].urls[Math.floor(Math.random() * chainSelectors[dstChainSelector].urls.length)];
+			chainSelectors[dstChainSelector].urls[
+				Math.floor(Math.random() * chainSelectors[dstChainSelector].urls.length)
+			];
 		const provider = new FunctionsJsonRpcProvider(dstUrl);
-		const wallet = new ethers.Wallet('0x' + secrets.MESSENGER_0_PRIVATE_KEY, provider);
+		const messengerPrivateKey = messengerPrivetKeys[BigInt(conceroMessageId) % 3n];
+		const wallet = new ethers.Wallet('0x' + messengerPrivateKey, provider);
 		const signer = wallet.connect(provider);
 		const abi = [
 			'function addUnconfirmedTX(bytes32, uint64, bytes32) external',
 			'function s_transactions(bytes32) view returns (bytes32, address, address, uint256, uint8, uint64, bool, bytes)',
 		];
 		const contract = new ethers.Contract(dstContractAddress, abi, signer);
-		const [feeData, nonce] = await Promise.all([provider.getFeeData(), provider.getTransactionCount(wallet.address)]);
-		gasPrice = feeData.gasPrice;
-		// maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+		const [feeData, nonce] = await Promise.all([
+			provider.getFeeData(),
+			provider.getTransactionCount(wallet.address),
+		]);
+
+		gasPrice = feeData.gasPrice + getPercent(feeData.gasPrice, 10);
+		maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+		maxFeePerGas = feeData.maxFeePerGas;
+
 		await sendTransaction(contract, signer, {
 			nonce,
-			// maxPriorityFeePerGas: maxPriorityFeePerGas,
-			maxFeePerGas:
-				dstChainSelector === [`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_POLYGON}').toString(16)}`]
-					? gasPrice
-					: gasPrice + getPercent(gasPrice, 10),
+			maxPriorityFeePerGas: maxPriorityFeePerGas + getPercent(maxPriorityFeePerGas, 10),
+			maxFeePerGas: maxFeePerGas + getPercent(maxFeePerGas, 10),
 		});
 
 		const srcUrl =
-			chainSelectors[srcChainSelector].urls[Math.floor(Math.random() * chainSelectors[srcChainSelector].urls.length)];
+			chainSelectors[srcChainSelector].urls[
+				Math.floor(Math.random() * chainSelectors[srcChainSelector].urls.length)
+			];
 		const srcChainProvider = new FunctionsJsonRpcProvider(srcUrl);
 		const [srcFeeData, srcPriceFeeds] = await Promise.all([
 			srcChainProvider.getFeeData(),

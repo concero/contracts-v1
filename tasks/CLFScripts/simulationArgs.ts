@@ -13,7 +13,7 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 		const sender = '0x70E73f067a1fC9FE6D53151bd271715811746d3a';
 		const recipient = '0x70E73f067a1fC9FE6D53151bd271715811746d3a';
 		const amount = '0x' + BigInt(100000000000000000).toString(16);
-		const srcChainSelector = '0x' + BigInt(getEnvVar('CL_CCIP_CHAIN_SELECTOR_POLYGON')).toString(16);
+		const srcChainSelector = '0x' + BigInt(getEnvVar('CL_CCIP_CHAIN_SELECTOR_BASE')).toString(16);
 		const dstChainSelector = '0x' + BigInt(getEnvVar('CL_CCIP_CHAIN_SELECTOR_ARBITRUM')).toString(16);
 		const token = '0x' + BigInt(1).toString(16);
 		const blockNumber = '0xA65233';
@@ -26,8 +26,8 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 			jsCodeType,
 			dstContractAddress,
 			ccipMessageId,
-			srcChainSelector,
 			dstChainSelector,
+			srcChainSelector,
 			txDataHash,
 		];
 	},
@@ -42,7 +42,7 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 			'0x5d4060fd7de4931c2025652b1832e2d99058025c0c47c74dd5d5b85976358197',
 		];
 	},
-	collect_liq: async () => {
+	pool_collect_liq: async () => {
 		const srcJsHashSum = getHashSum(await (await fetch(collectLiquidityCodeUrl)).text());
 		const ethersHashSum = getHashSum(await (await fetch(ethersV6CodeUrl)).text());
 		const placeholder = '0xDddDDb8a8E41C194ac6542a0Ad7bA663A72741E0';
@@ -51,7 +51,7 @@ const getSimulationArgs: {[functionName: string]: ArgBuilder} = {
 
 		return [srcJsHashSum, ethersHashSum, placeholder, liquidityRequestedFromEachPool, withdrawalId];
 	},
-	pool_get_total_balance: async () => {
+	pool_get_child_pools_liquidity: async () => {
 		const srcJsHashSum = '0xef64cf53063700bbbd8e42b0282d3d8579aac289ea03f826cf16f9bd96c7703a';
 		const ethersHashSum = '0x984202f6c36a048a80e993557555488e5ae13ff86f2dfbcde698aacd0a7d4eb4';
 

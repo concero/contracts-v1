@@ -41,10 +41,16 @@
 			poolAddress: '${CHILD_POOL_PROXY_AVALANCHE}',
 		},
 		['${CL_CCIP_CHAIN_SELECTOR_BASE}']: {
-			urls: [`https://base-mainnet.g.alchemy.com/v2/${secrets.PARENT_POOL_ALCHEMY_API_KEY}`],
+			urls: [`https://base-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
 			chainId: '0x2105',
 			usdcAddress: '${USDC_BASE}',
 			poolAddress: '${PARENT_POOL_PROXY_BASE}',
+		},
+		['${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}']: {
+			urls: [`https://optimism-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa',
+			usdcAddress: '${USDC_OPTIMISM}',
+			poolAddress: '${CHILD_POOL_PROXY_OPTIMISM}',
 		},
 	};
 

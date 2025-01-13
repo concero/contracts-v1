@@ -62,6 +62,16 @@
 				usdcAddress: '${USDC_BASE}',
 				poolAddress: '${PARENT_POOL_PROXY_BASE}',
 			},
+			['${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}']: {
+				urls: [
+					'https://optimism-rpc.publicnode.com',
+					'https://rpc.ankr.com/optimism',
+					'https://optimism.drpc.org',
+				],
+				chainId: '0xa',
+				usdcAddress: '${USDC_OPTIMISM}',
+				poolAddress: '${CHILD_POOL_PROXY_OPTIMISM}',
+			},
 		};
 
 		let chainsMap;
