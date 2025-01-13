@@ -293,7 +293,7 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
 
         address bridgeableTokenDst = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
         uint256 amountUsdcAfterFees = amount - getDstTotalFeeInUsdc(amount);
-        IDexSwap.SwapData[] memory swapData = _decompressSwapData(compressedDstSwapData);
+        IDexSwap.SwapData_DEPRECATED[] memory swapData = _decompressSwapData(compressedDstSwapData);
 
         if (swapData.length == 0) {
             IPool(i_poolProxy).takeLoan(bridgeableTokenDst, amountUsdcAfterFees, receiver);
@@ -311,7 +311,7 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
     }
 
     function _performDstSwap(
-        IDexSwap.SwapData[] memory swapData,
+        IDexSwap.SwapData_DEPRECATED[] memory swapData,
         uint256 amountUsdcAfterFees,
         bytes32 conceroMessageId,
         address receiver,
@@ -343,13 +343,13 @@ contract InfraCLF is IInfraCLF, FunctionsClient, InfraCommon, InfraStorage {
 
     function _decompressSwapData(
         bytes memory compressedDstSwapData
-    ) internal pure returns (IDexSwap.SwapData[] memory swapData) {
+    ) internal pure returns (IDexSwap.SwapData_DEPRECATED[] memory swapData) {
         bytes memory decompressedDstSwapData = LibZip.cdDecompress(compressedDstSwapData);
 
         if (decompressedDstSwapData.length == 0) {
-            return new IDexSwap.SwapData[](0);
+            return new IDexSwap.SwapData_DEPRECATED[](0);
         } else {
-            return abi.decode(decompressedDstSwapData, (IDexSwap.SwapData[]));
+            return abi.decode(decompressedDstSwapData, (IDexSwap.SwapData_DEPRECATED[]));
         }
     }
 

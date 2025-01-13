@@ -73,7 +73,7 @@ contract InfraOrchestrator is
 
     /* MODIFIERS */
     modifier validateBridgeData(BridgeData memory bridgeData) {
-        if (bridgeData.amount == 0 || bridgeData.receiver == address(0)) {
+        if (bridgeData.amount == 0 || bridgeData.receiver == ZERO_ADDRESS) {
             revert InvalidBridgeData();
         }
         _;
@@ -248,7 +248,7 @@ contract InfraOrchestrator is
                 s_integratorFeesAmountByToken[msg.sender][token] = 0;
                 s_totalIntegratorFeesAmountByToken[token] -= amount;
 
-                if (token == address(0)) {
+                if (token == ZERO_ADDRESS) {
                     (bool success, ) = msg.sender.call{value: amount}("");
                     if (!success) revert TransferFailed();
                 } else {
@@ -269,7 +269,7 @@ contract InfraOrchestrator is
         address recipient,
         address[] calldata tokens
     ) external payable nonReentrant onlyOwner {
-        if (recipient == address(0)) {
+        if (recipient == ZERO_ADDRESS) {
             revert InvalidRecipient();
         }
         address usdc = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
@@ -304,7 +304,7 @@ contract InfraOrchestrator is
                     revert InvalidAmount();
                 }
 
-                if (token == address(0)) {
+                if (token == ZERO_ADDRESS) {
                     (bool success, ) = payable(recipient).call{value: availableBalance}("");
                     if (!success) {
                         revert TransferFailed();
@@ -344,7 +344,7 @@ contract InfraOrchestrator is
         address initialToken = swapData[0].fromToken;
         uint256 initialAmount = swapData[0].fromAmount;
 
-        if (initialToken != address(0)) {
+        if (initialToken != ZERO_ADDRESS) {
             LibConcero.transferFromERC20(initialToken, msg.sender, address(this), initialAmount);
         } else {
             if (initialAmount != msg.value) revert InvalidAmount();
@@ -424,5 +424,91 @@ contract InfraOrchestrator is
 
         emit IntegratorFeesCollected(integration.integrator, token, integratorFeeAmount);
         return integratorFeeAmount;
+    }
+
+    /* DEPRECATED FUNCTIONS */
+
+    modifier validateSrcSwapData_DEPRECATED(IDexSwap.SwapData_DEPRECATED[] memory swapData) {
+        if (swapData.length == 0 || swapData.length > 5 || swapData[0].fromAmount == 0) {
+            revert InvalidSwapData();
+        }
+        _;
+    }
+
+    function swapAndBridge(
+        BridgeData memory bridgeData,
+        IDexSwap.SwapData_DEPRECATED[] calldata srcSwapData,
+        bytes memory compressedDstSwapData,
+        Integration calldata integration
+    )
+        external
+        payable
+        nonReentrant
+        validateSrcSwapData_DEPRECATED(srcSwapData)
+        validateBridgeData(bridgeData)
+    {
+        address usdc = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
+
+        if (srcSwapData[srcSwapData.length - 1].toToken != usdc) {
+            revert InvalidSwapData();
+        }
+
+        _transferTokenFromUser(srcSwapData);
+
+        uint256 amountReceivedFromSwap = _swap(srcSwapData, address(this));
+        bridgeData.amount =
+            amountReceivedFromSwap -
+            _collectIntegratorFee(usdc, amountReceivedFromSwap, integration);
+
+        _bridge(bridgeData, compressedDstSwapData);
+    }
+
+    function swap(
+        IDexSwap.SwapData_DEPRECATED[] memory swapData,
+        address receiver,
+        Integration calldata integration
+    ) external payable nonReentrant validateSrcSwapData_DEPRECATED(swapData) {
+        _transferTokenFromUser(swapData);
+        swapData = _collectSwapFee(swapData, integration);
+        _swap(swapData, receiver);
+    }
+
+    function _transferTokenFromUser(IDexSwap.SwapData_DEPRECATED[] memory swapData) internal {
+        address initialToken = swapData[0].fromToken;
+        uint256 initialAmount = swapData[0].fromAmount;
+
+        if (initialToken != ZERO_ADDRESS) {
+            LibConcero.transferFromERC20(initialToken, msg.sender, address(this), initialAmount);
+        } else {
+            if (initialAmount != msg.value) revert InvalidAmount();
+        }
+    }
+
+    function _swap(
+        IDexSwap.SwapData_DEPRECATED[] memory swapData,
+        address receiver
+    ) internal returns (uint256) {
+        bytes memory delegateCallArgs = abi.encodeWithSelector(
+            IDexSwap.entrypoint_DEPRECATED.selector,
+            swapData,
+            receiver
+        );
+        bytes memory delegateCallRes = LibConcero.safeDelegateCall(i_dexSwap, delegateCallArgs);
+        return abi.decode(delegateCallRes, (uint256));
+    }
+
+    function _collectSwapFee(
+        IDexSwap.SwapData_DEPRECATED[] memory swapData,
+        Integration calldata integration
+    ) internal returns (IDexSwap.SwapData_DEPRECATED[] memory) {
+        swapData[0].fromAmount -= (swapData[0].fromAmount / CONCERO_FEE_FACTOR);
+
+        swapData[0].fromAmount -= _collectIntegratorFee(
+            swapData[0].fromToken,
+            swapData[0].fromAmount,
+            integration
+        );
+
+        return swapData;
     }
 }
