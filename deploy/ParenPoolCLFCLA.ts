@@ -5,6 +5,7 @@ import updateEnvVariable from "../utils/updateEnvVariable";
 import log from "../utils/log";
 import { getEnvVar, getFallbackClients } from "../utils";
 import { poolMessengers } from "../constants";
+import { getGasParameters } from "../utils/getGasPrice";
 
 interface Args {
   parentProxyAddress: string;
@@ -25,6 +26,7 @@ const deployParentPoolCLFCLA: (hre: HardhatRuntimeEnvironment, constructorArgs?:
     const networkType = cNetwork.type;
 
     const { functionsRouter, functionsSubIds, functionsDonId } = cNetwork;
+    const { maxFeePerGas, maxPriorityFeePerGas } = await getGasParameters(conceroNetworks[name]);
 
     const defaultArgs: Args = {
       parentProxyAddress: getEnvVar(`PARENT_POOL_PROXY_${networkEnvKeys[name]}`),
@@ -37,10 +39,6 @@ const deployParentPoolCLFCLA: (hre: HardhatRuntimeEnvironment, constructorArgs?:
     };
 
     const args = { ...defaultArgs, ...constructorArgs };
-
-    const { publicClient: viemPublicClient } = getFallbackClients(conceroNetworks[name]);
-    const gasPrice = await viemPublicClient.getGasPrice();
-
     console.log("Deploying parent pool clf cla...");
 
     const deployParentPoolCLFCLA = (await deploy("ParentPoolCLFCLA", {
@@ -56,7 +54,8 @@ const deployParentPoolCLFCLA: (hre: HardhatRuntimeEnvironment, constructorArgs?:
       ],
       log: true,
       autoMine: true,
-      gasPrice: gasPrice,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
     })) as Deployment;
 
     if (live) {

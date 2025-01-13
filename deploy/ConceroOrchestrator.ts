@@ -5,6 +5,7 @@ import updateEnvVariable from "../utils/updateEnvVariable";
 import log from "../utils/log";
 import { getEnvVar } from "../utils";
 import { messengers } from "../constants";
+import { getGasParameters, getGasPrice } from "../utils/getGasPrice";
 
 const deployConceroOrchestrator: (hre: HardhatRuntimeEnvironment) => Promise<void> = async function (
   hre: HardhatRuntimeEnvironment,
@@ -24,9 +25,9 @@ const deployConceroOrchestrator: (hre: HardhatRuntimeEnvironment) => Promise<voi
       : getEnvVar(`CHILD_POOL_PROXY_${networkEnvKeys[name]}`);
 
   const conceroProxyAddress = getEnvVar(`CONCERO_INFRA_PROXY_${networkEnvKeys[name]}`);
+  const { maxFeePerGas, maxPriorityFeePerGas } = await getGasParameters(conceroNetworks[name]);
 
   log("Deploying...", "ConceroOrchestrator", name);
-
   const conceroProxyDeployment = (await deploy("InfraOrchestrator", {
     from: deployer,
     args: [
@@ -40,6 +41,8 @@ const deployConceroOrchestrator: (hre: HardhatRuntimeEnvironment) => Promise<voi
     ],
     log: true,
     autoMine: true,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
   })) as Deployment;
 
   if (live) {

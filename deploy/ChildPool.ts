@@ -5,6 +5,7 @@ import updateEnvVariable from "../utils/updateEnvVariable";
 import log from "../utils/log";
 import { getEnvVar } from "../utils";
 import { poolMessengers } from "../constants";
+import { getGasParameters } from "../utils/getGasPrice";
 
 interface ConstructorArgs {
   conceroProxyAddress?: string;
@@ -38,6 +39,7 @@ const deployChildPool: (hre: HardhatRuntimeEnvironment, constructorArgs?: Constr
 
     // Merge defaultArgs with constructorArgs
     const args = { ...defaultArgs, ...constructorArgs };
+    const { maxFeePerGas, maxPriorityFeePerGas } = await getGasParameters(conceroNetworks[name]);
 
     log("Deploying...", "deployChildPool", name);
 
@@ -54,6 +56,8 @@ const deployChildPool: (hre: HardhatRuntimeEnvironment, constructorArgs?: Constr
       ],
       log: true,
       autoMine: true,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
     })) as Deployment;
 
     if (live) {

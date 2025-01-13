@@ -6,6 +6,7 @@ import log from "../utils/log";
 import { zeroAddress } from "viem";
 import { getEnvVar, getFallbackClients } from "../utils";
 import { poolMessengers } from "../constants";
+import { getGasParameters } from "../utils/getGasPrice";
 
 interface Args {
   parentProxyAddress: string;
@@ -45,6 +46,7 @@ const deployParentPool: (hre: HardhatRuntimeEnvironment, constructorArgs?: Const
 
     // Merge defaultArgs with constructorArgs
     const args = { ...defaultArgs, ...constructorArgs };
+    const { maxFeePerGas, maxPriorityFeePerGas } = await getGasParameters(conceroNetworks[name]);
 
     log("Deploying...", `deployParentPool, ${deployer}`, name);
 
@@ -68,7 +70,8 @@ const deployParentPool: (hre: HardhatRuntimeEnvironment, constructorArgs?: Const
       ],
       log: true,
       autoMine: true,
-      gasPrice: gasPrice,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
     })) as Deployment;
 
     if (live) {
