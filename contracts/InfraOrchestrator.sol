@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_OPTIMISM, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, CHAIN_SELECTOR_ETHEREUM, USDC_ARBITRUM, USDC_BASE, USDC_POLYGON, USDC_AVALANCHE, USDC_OPTIMISM, USDC_ETHEREUM} from "./Constants.sol";
+import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_OPTIMISM, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, CHAIN_SELECTOR_ETHEREUM} from "./Constants.sol";
 import {InfraCommon} from "./InfraCommon.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
 import {IDexSwap} from "./Interfaces/IDexSwap.sol";
@@ -12,7 +12,6 @@ import {LibConcero} from "./Libraries/LibConcero.sol";
 import {IFunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/interfaces/IFunctionsClient.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /* ERRORS */
 ///@notice error emitted when the balance input is smaller than the specified amount param
@@ -132,13 +131,13 @@ contract InfraOrchestrator is
         BridgeData memory bridgeData,
         IDexSwap.SwapData[] calldata srcSwapData,
         bytes memory compressedDstSwapData,
-        Integration memory integration
+        Integration calldata integration
     )
         external
         payable
+        nonReentrant
         validateSrcSwapData(srcSwapData)
         validateBridgeData(bridgeData)
-        nonReentrant
     {
         address usdc = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
 
@@ -165,8 +164,8 @@ contract InfraOrchestrator is
     function swap(
         IDexSwap.SwapData[] memory swapData,
         address receiver,
-        Integration memory integration
-    ) external payable validateSrcSwapData(swapData) nonReentrant {
+        Integration calldata integration
+    ) external payable nonReentrant validateSrcSwapData(swapData) {
         _transferTokenFromUser(swapData);
         swapData = _collectSwapFee(swapData, integration);
         _swap(swapData, receiver);
@@ -180,8 +179,8 @@ contract InfraOrchestrator is
     function bridge(
         BridgeData memory bridgeData,
         bytes memory compressedDstSwapData,
-        Integration memory integration
-    ) external payable validateBridgeData(bridgeData) nonReentrant {
+        Integration calldata integration
+    ) external payable nonReentrant validateBridgeData(bridgeData) {
         address fromToken = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
         LibConcero.transferFromERC20(fromToken, msg.sender, address(this), bridgeData.amount);
         bridgeData.amount -= _collectIntegratorFee(fromToken, bridgeData.amount, integration);
@@ -269,7 +268,7 @@ contract InfraOrchestrator is
     function withdrawConceroFees(
         address recipient,
         address[] calldata tokens
-    ) external payable onlyOwner nonReentrant {
+    ) external payable nonReentrant onlyOwner {
         if (recipient == address(0)) {
             revert InvalidRecipient();
         }
@@ -397,7 +396,7 @@ contract InfraOrchestrator is
 
     function _collectSwapFee(
         IDexSwap.SwapData[] memory swapData,
-        Integration memory integration
+        Integration calldata integration
     ) internal returns (IDexSwap.SwapData[] memory) {
         swapData[0].fromAmount -= (swapData[0].fromAmount / CONCERO_FEE_FACTOR);
 
@@ -413,13 +412,12 @@ contract InfraOrchestrator is
     function _collectIntegratorFee(
         address token,
         uint256 amount,
-        Integration memory integration
+        Integration calldata integration
     ) internal returns (uint256) {
-        if (integration.integrator == address(0)) return 0;
+        if (integration.integrator == ZERO_ADDRESS || integration.feeBps == 0) return 0;
         if (integration.feeBps > MAX_INTEGRATOR_FEE_BPS) revert InvalidIntegratorFeeBps();
 
         uint256 integratorFeeAmount = (amount * integration.feeBps) / BPS_DIVISOR;
-        if (integratorFeeAmount == 0) return 0;
 
         s_integratorFeesAmountByToken[integration.integrator][token] += integratorFeeAmount;
         s_totalIntegratorFeesAmountByToken[token] += integratorFeeAmount;

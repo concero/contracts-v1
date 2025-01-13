@@ -56,8 +56,9 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
         if (address(this) != i_proxy) revert OnlyProxyContext(address(this));
 
         uint256 swapDataLength = swapData.length;
-        address dstToken = swapData[swapDataLength - 1].toToken;
-        uint256 addressThisBalanceBefore = LibConcero.getBalance(dstToken, address(this));
+        uint256 lastSwapStepIndex = swapDataLength - 1;
+        address dstToken = swapData[lastSwapStepIndex].toToken;
+        uint256 dstTokenProxyInitialBalance = LibConcero.getBalance(dstToken, address(this));
         uint256 balanceAfter;
 
         for (uint256 i; i < swapDataLength; ++i) {
@@ -72,7 +73,7 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
                 revert InsufficientAmount(tokenReceived);
             }
 
-            if (i < swapDataLength - 1) {
+            if (i < lastSwapStepIndex) {
                 if (swapData[i].toToken != swapData[i + 1].fromToken) {
                     revert InvalidTokenPath();
                 }
@@ -81,11 +82,12 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
             }
         }
 
+        // @dev check if swapDataLength is 0 and there were no swaps
         if (balanceAfter == 0) {
             revert InvalidDexData();
         }
 
-        uint256 dstTokenReceived = balanceAfter - addressThisBalanceBefore;
+        uint256 dstTokenReceived = balanceAfter - dstTokenProxyInitialBalance;
 
         if (recipient != address(this)) {
             _transferTokenToUser(recipient, dstToken, dstTokenReceived);
@@ -109,14 +111,14 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
         if (!s_routerAllowed[routerAddress]) revert DexRouterNotAllowed();
 
         uint256 fromAmount = swapData.fromAmount;
-        bool isFromNative = swapData.fromToken == address(0);
+        bool isFromNative = swapData.fromToken == ZERO_ADDRESS;
 
         bool success;
-        if (isFromNative) {
-            (success, ) = routerAddress.call{value: fromAmount}(swapData.dexCallData);
-        } else {
+        if (!isFromNative) {
             IERC20(swapData.fromToken).safeIncreaseAllowance(routerAddress, fromAmount);
             (success, ) = routerAddress.call(swapData.dexCallData);
+        } else {
+            (success, ) = routerAddress.call{value: fromAmount}(swapData.dexCallData);
         }
 
         if (!success) {
@@ -125,17 +127,17 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
     }
 
     function _transferTokenToUser(address recipient, address token, uint256 amount) internal {
-        if (amount == 0 || recipient == address(0)) {
+        if (amount == 0 || recipient == ZERO_ADDRESS) {
             revert InvalidDexData();
         }
 
-        if (token == address(0)) {
+        if (token != ZERO_ADDRESS) {
+            IERC20(token).safeTransfer(recipient, amount);
+        } else {
             (bool success, ) = recipient.call{value: amount}("");
             if (!success) {
                 revert TransferFailed();
             }
-        } else {
-            IERC20(token).safeTransfer(recipient, amount);
         }
     }
 }
