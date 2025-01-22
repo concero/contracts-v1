@@ -62,22 +62,46 @@
 			// mainnets
 
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_POLYGON}').toString(16)}`]: {
-				urls: ['https://polygon-bor-rpc.publicnode.com', 'https://rpc.ankr.com/polygon'],
+				urls: [
+					'https://polygon-bor-rpc.publicnode.com',
+					'https://rpc.ankr.com/polygon',
+					'https://polygon.llamarpc.com',
+					'https://polygon-rpc.com',
+					'https://polygon.drpc.org',
+				],
 				confirmations: 3n,
 				chainId: '0x89',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_ARBITRUM}').toString(16)}`]: {
-				urls: ['https://arbitrum-rpc.publicnode.com', 'https://rpc.ankr.com/arbitrum'],
+				urls: [
+					'https://arbitrum-rpc.publicnode.com',
+					'https://rpc.ankr.com/arbitrum',
+					'https://arbitrum.llamarpc.com',
+					'https://arbitrum-one-rpc.publicnode.com',
+					'https://arbitrum.gateway.tenderly.co',
+					'https://arbitrum.drpc.org',
+				],
 				confirmations: 3n,
 				chainId: '0xa4b1',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_BASE}').toString(16)}`]: {
-				urls: ['https://base-rpc.publicnode.com', 'https://rpc.ankr.com/base'],
+				urls: [
+					'https://base-rpc.publicnode.com',
+					'https://rpc.ankr.com/base',
+					'https://base.gateway.tenderly.co',
+					'https://base.blockpi.network/v1/rpc/public',
+				],
 				confirmations: 3n,
 				chainId: '0x2105',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_AVALANCHE}').toString(16)}`]: {
-				urls: ['https://avalanche-c-chain-rpc.publicnode.com', 'https://rpc.ankr.com/avalanche'],
+				urls: [
+					'https://avalanche-c-chain-rpc.publicnode.com',
+					'https://rpc.ankr.com/avalanche',
+					'https://avalanche.public-rpc.com',
+					'https://1rpc.io/avax/c',
+					'https://avalanche.drpc.org',
+				],
 				confirmations: 3n,
 				chainId: '0xa86a',
 			},
@@ -86,6 +110,8 @@
 					'https://optimism-rpc.publicnode.com',
 					'https://rpc.ankr.com/optimism',
 					'https://optimism.drpc.org',
+					'https://optimism.llamarpc.com',
+					'https://optimism.gateway.tenderly.co',
 				],
 				confirmations: 3n,
 				chainId: '0xa',
@@ -93,9 +119,9 @@
 		};
 
 		class FunctionsJsonRpcProvider extends ethers.JsonRpcProvider {
-			constructor(url) {
-				super(url);
-				this.url = url;
+			constructor(_url) {
+				super(_url);
+				this.url = _url;
 			}
 			async _send(payload) {
 				if (payload.method === 'eth_chainId') {
@@ -117,25 +143,38 @@
 		const ethersId = ethers.id('ConceroBridgeSent(bytes32,uint256,uint64,address,bytes)');
 		const contract = new ethers.Interface(abi);
 
-		const url = chainMap[srcChainSelector].urls[Math.floor(Math.random() * chainMap[srcChainSelector].urls.length)];
+		const {urls: rpcsUrls, confirmations} = chainMap[srcChainSelector];
+		let getLogsRetryCounter = 5;
+		let index = Math.floor(Math.random() * rpcsUrls.length);
+		let provider;
+		let latestBlockNumber;
+		let logs = [];
 
-		const provider = new FunctionsJsonRpcProvider(url);
-		let latestBlockNumber = BigInt(await provider.getBlockNumber());
-		const confirmations = chainMap[srcChainSelector].confirmations;
+		while (getLogsRetryCounter-- > 0 && !logs.length) {
+			try {
+				provider = new FunctionsJsonRpcProvider(rpcsUrls[index]);
+				latestBlockNumber = BigInt(await provider.getBlockNumber());
+				logs = await provider.getLogs({
+					address: srcContractAddress,
+					topics: [ethersId, conceroMessageId],
+					// @dev for new blockchains with blockNumber < 1000
+					fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
+					toBlock: latestBlockNumber,
+				});
+			} catch (e) {}
 
-		const logs = await provider.getLogs({
-			address: srcContractAddress,
-			topics: [ethersId, conceroMessageId],
-			// @dev for new blockchains with blockNumber < 1000
-			fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
-			toBlock: latestBlockNumber,
-		});
+			index = (index + 1) % rpcsUrls.length;
 
-		if (!logs.length) {
-			throw new Error('No logs found');
+			if (!logs.length) {
+				await sleep(2000);
+			}
 		}
 
-		const log = logs[0];
+		if (!logs.length) {
+			throw new Error(`No logs found ${provider.url}`);
+		}
+
+		let log = logs[0];
 		const logBlockNumber = BigInt(log.blockNumber);
 
 		while (latestBlockNumber - logBlockNumber < confirmations) {
@@ -153,6 +192,8 @@
 		if (!newLogs.some(l => l.transactionHash === log.transactionHash)) {
 			throw new Error('Log no longer exists.');
 		}
+
+		log = newLogs[0];
 
 		const logData = {
 			topics: [ethersId, log.topics[1]],
