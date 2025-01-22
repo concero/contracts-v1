@@ -88,7 +88,6 @@
 				urls: [
 					'https://base-rpc.publicnode.com',
 					'https://rpc.ankr.com/base',
-					'https://base.meowrpc.com',
 					'https://base.gateway.tenderly.co',
 					'https://base.blockpi.network/v1/rpc/public',
 				],
@@ -112,7 +111,6 @@
 					'https://rpc.ankr.com/optimism',
 					'https://optimism.drpc.org',
 					'https://optimism.llamarpc.com',
-					'https://op-pokt.nodies.app',
 					'https://optimism.gateway.tenderly.co',
 				],
 				confirmations: 3n,
@@ -121,9 +119,9 @@
 		};
 
 		class FunctionsJsonRpcProvider extends ethers.JsonRpcProvider {
-			constructor(url) {
-				super(url);
-				this.url = url;
+			constructor(_url) {
+				super(_url);
+				this.url = _url;
 			}
 			async _send(payload) {
 				if (payload.method === 'eth_chainId') {
@@ -153,20 +151,22 @@
 		let logs = [];
 
 		while (getLogsRetryCounter-- > 0 && !logs.length) {
-			provider = new FunctionsJsonRpcProvider(rpcsUrls[index]);
-			latestBlockNumber = BigInt(await provider.getBlockNumber());
-			logs = await provider.getLogs({
-				address: srcContractAddress,
-				topics: [ethersId, conceroMessageId],
-				// @dev for new blockchains with blockNumber < 1000
-				fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
-				toBlock: latestBlockNumber,
-			});
+			try {
+				provider = new FunctionsJsonRpcProvider(rpcsUrls[index]);
+				latestBlockNumber = BigInt(await provider.getBlockNumber());
+				logs = await provider.getLogs({
+					address: srcContractAddress,
+					topics: [ethersId, conceroMessageId],
+					// @dev for new blockchains with blockNumber < 1000
+					fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
+					toBlock: latestBlockNumber,
+				});
+			} catch (e) {}
 
 			index = (index + 1) % rpcsUrls.length;
 
 			if (!logs.length) {
-				await sleep(2000);
+				await sleep(3000);
 			}
 		}
 
@@ -174,7 +174,7 @@
 			throw new Error(`No logs found ${provider.url}`);
 		}
 
-		const log = logs[0];
+		let log = logs[0];
 		const logBlockNumber = BigInt(log.blockNumber);
 
 		while (latestBlockNumber - logBlockNumber < confirmations) {
@@ -192,6 +192,8 @@
 		if (!newLogs.some(l => l.transactionHash === log.transactionHash)) {
 			throw new Error('Log no longer exists.');
 		}
+
+		log = newLogs[0];
 
 		const logData = {
 			topics: [ethersId, log.topics[1]],

@@ -1,5 +1,5 @@
 const CLFSimulationConfig = {
-  maxOnChainResponseBytes: 256,
+  maxOnChainResponseBytes: 1024,
   maxExecutionTimeMs: 100000,
   maxMemoryUsageMb: 128,
   numAllowedQueries: 20,
