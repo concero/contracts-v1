@@ -117,22 +117,33 @@
 		const ethersId = ethers.id('ConceroBridgeSent(bytes32,uint256,uint64,address,bytes)');
 		const contract = new ethers.Interface(abi);
 
-		const url = chainMap[srcChainSelector].urls[Math.floor(Math.random() * chainMap[srcChainSelector].urls.length)];
+		const {urls: rpcsUrls, confirmations} = chainMap[srcChainSelector];
+		let getLogsRetryCounter = 5;
+		let index = Math.floor(Math.random() * rpcsUrls.length);
+		let provider;
+		let latestBlockNumber;
+		let logs = [];
 
-		const provider = new FunctionsJsonRpcProvider(url);
-		let latestBlockNumber = BigInt(await provider.getBlockNumber());
-		const confirmations = chainMap[srcChainSelector].confirmations;
+		while (getLogsRetryCounter-- > 0 && !logs.length) {
+			provider = new FunctionsJsonRpcProvider(rpcsUrls[index]);
+			latestBlockNumber = BigInt(await provider.getBlockNumber());
+			logs = await provider.getLogs({
+				address: srcContractAddress,
+				topics: [ethersId, conceroMessageId],
+				// @dev for new blockchains with blockNumber < 1000
+				fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
+				toBlock: 'latest',
+			});
 
-		const logs = await provider.getLogs({
-			address: srcContractAddress,
-			topics: [ethersId, conceroMessageId],
-			// @dev for new blockchains with blockNumber < 1000
-			fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
-			toBlock: latestBlockNumber,
-		});
+			index = (index + 1) % rpcsUrls.length;
+
+			if (!logs.length) {
+				await sleep(2000);
+			}
+		}
 
 		if (!logs.length) {
-			throw new Error('No logs found');
+			throw new Error(`No logs found ${provider.url}`);
 		}
 
 		const log = logs[0];
