@@ -150,7 +150,7 @@
 			} catch (e) {}
 			index = (index + 1) % rpcsUrls.length;
 			if (!logs.length) {
-				await sleep(3000);
+				await sleep(2000);
 			}
 		}
 		if (!logs.length) {
