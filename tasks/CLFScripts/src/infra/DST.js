@@ -62,22 +62,47 @@
 			// mainnets
 
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_POLYGON}').toString(16)}`]: {
-				urls: ['https://polygon-bor-rpc.publicnode.com', 'https://rpc.ankr.com/polygon'],
+				urls: [
+					'https://polygon-bor-rpc.publicnode.com',
+					'https://rpc.ankr.com/polygon',
+					'https://polygon.llamarpc.com',
+					'https://polygon-rpc.com',
+					'https://polygon.drpc.org',
+				],
 				confirmations: 3n,
 				chainId: '0x89',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_ARBITRUM}').toString(16)}`]: {
-				urls: ['https://arbitrum-rpc.publicnode.com', 'https://rpc.ankr.com/arbitrum'],
+				urls: [
+					'https://arbitrum-rpc.publicnode.com',
+					'https://rpc.ankr.com/arbitrum',
+					'https://arbitrum.llamarpc.com',
+					'https://arbitrum-one-rpc.publicnode.com',
+					'https://arbitrum.gateway.tenderly.co',
+					'https://arbitrum.drpc.org',
+				],
 				confirmations: 3n,
 				chainId: '0xa4b1',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_BASE}').toString(16)}`]: {
-				urls: ['https://base-rpc.publicnode.com', 'https://rpc.ankr.com/base'],
+				urls: [
+					'https://base-rpc.publicnode.com',
+					'https://rpc.ankr.com/base',
+					'https://base.meowrpc.com',
+					'https://base.gateway.tenderly.co',
+					'https://base.blockpi.network/v1/rpc/public',
+				],
 				confirmations: 3n,
 				chainId: '0x2105',
 			},
 			[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_AVALANCHE}').toString(16)}`]: {
-				urls: ['https://avalanche-c-chain-rpc.publicnode.com', 'https://rpc.ankr.com/avalanche'],
+				urls: [
+					'https://avalanche-c-chain-rpc.publicnode.com',
+					'https://rpc.ankr.com/avalanche',
+					'https://avalanche.public-rpc.com',
+					'https://1rpc.io/avax/c',
+					'https://avalanche.drpc.org',
+				],
 				confirmations: 3n,
 				chainId: '0xa86a',
 			},
@@ -86,6 +111,9 @@
 					'https://optimism-rpc.publicnode.com',
 					'https://rpc.ankr.com/optimism',
 					'https://optimism.drpc.org',
+					'https://optimism.llamarpc.com',
+					'https://op-pokt.nodies.app',
+					'https://optimism.gateway.tenderly.co',
 				],
 				confirmations: 3n,
 				chainId: '0xa',
@@ -132,7 +160,7 @@
 				topics: [ethersId, conceroMessageId],
 				// @dev for new blockchains with blockNumber < 1000
 				fromBlock: BigInt(Math.max(Number(latestBlockNumber - 1000n), 0)),
-				toBlock: 'latest',
+				toBlock: latestBlockNumber,
 			});
 
 			index = (index + 1) % rpcsUrls.length;
