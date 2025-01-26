@@ -21,6 +21,8 @@ error WithdrawalAlreadyTriggered(bytes32 id);
 error WithdrawalRequestDoesntExist(bytes32 id);
 error WithdrawalRequestNotReady(bytes32 id);
 error WithdrawalAlreadyPerformed(bytes32 id);
+error InvalidCLFRequestType();
+
 contract ParentPoolCLFCLA is
     IParentPoolCLFCLA,
     FunctionsClient,
@@ -80,6 +82,12 @@ contract ParentPoolCLFCLA is
     ) internal override {
         IParentPool.CLFRequestType requestType = s_clfRequestTypes[requestId];
 
+        if (requestType == IParentPool.CLFRequestType.empty) {
+            revert InvalidCLFRequestType();
+        }
+
+        delete s_clfRequestTypes[requestId];
+
         if (err.length > 0) {
             if (requestType == IParentPool.CLFRequestType.startDeposit_getChildPoolsLiquidity) {
                 delete s_depositRequests[requestId];
@@ -90,11 +98,11 @@ contract ParentPoolCLFCLA is
                 address lpAddress = s_withdrawRequests[withdrawalId].lpAddress;
                 uint256 lpAmountToBurn = s_withdrawRequests[withdrawalId].lpAmountToBurn;
 
-                IERC20(i_lpToken).safeTransfer(lpAddress, lpAmountToBurn);
-
                 delete s_withdrawRequests[withdrawalId];
                 delete s_withdrawalIdByLPAddress[lpAddress];
                 delete s_withdrawalIdByCLFRequestId[requestId];
+
+                IERC20(i_lpToken).safeTransfer(lpAddress, lpAmountToBurn);
             }
 
             emit CLFRequestError(requestId, requestType, err);
@@ -110,10 +118,10 @@ contract ParentPoolCLFCLA is
                 requestType == IParentPool.CLFRequestType.withdrawal_requestLiquidityCollection
             ) {
                 _handleAutomationCLFFulfill(requestId);
+            } else {
+                revert InvalidCLFRequestType();
             }
         }
-
-        delete s_clfRequestTypes[requestId];
     }
 
     function sendCLFRequest(bytes[] memory args) external onlyProxyContext returns (bytes32) {
