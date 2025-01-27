@@ -2,15 +2,41 @@
 	try {
 		const [_, __, ___, liquidityRequestedFromEachPool, withdrawalId] = bytesArgs;
 		const chainSelectors = {
-			[`0x${BigInt('3478487238524512106').toString(16)}`]: {
+			[`0x${BigInt('4949039107694359620').toString(16)}`]: {
 				urls: [
-					`https://arbitrum-sepolia.infura.io/v3/${secrets.INFURA_API_KEY}`,
-					'https://arbitrum-sepolia.blockpi.network/v1/rpc/public',
-					'https://arbitrum-sepolia-rpc.publicnode.com',
+					'https://arbitrum.llamarpc.com',
+					'https://arbitrum-one-rpc.publicnode.com',
+					'https://arbitrum.drpc.org',
 				],
-				chainId: '0x66eee',
-				usdcAddress: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
-				poolAddress: '0x08b7325A4fF82F97803ff650A3288E036FB424ea',
+				chainId: '0xa4b1',
+				usdcAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+				poolAddress: '0x164c20A4E11cBE0d8B5e23F5EE35675890BE280d',
+			},
+			[`0x${BigInt('4051577828743386545').toString(16)}`]: {
+				urls: [
+					'https://polygon-bor-rpc.publicnode.com',
+					'https://rpc.ankr.com/polygon',
+					'https://polygon.llamarpc.com',
+				],
+				chainId: '0x89',
+				usdcAddress: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+				poolAddress: '0x164c20A4E11cBE0d8B5e23F5EE35675890BE280d',
+			},
+			[`0x${BigInt('6433500567565415381').toString(16)}`]: {
+				urls: [
+					'https://avalanche.public-rpc.com',
+					'https://avalanche-c-chain-rpc.publicnode.com',
+					'https://rpc.ankr.com/avalanche',
+				],
+				chainId: '0xa86a',
+				usdcAddress: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+				poolAddress: '0x164c20A4E11cBE0d8B5e23F5EE35675890BE280d',
+			},
+			[`0x${BigInt('3734403246176062136').toString(16)}`]: {
+				urls: ['https://optimism.llamarpc.com', 'https://rpc.ankr.com/optimism', 'https://optimism.drpc.org'],
+				chainId: '0xa',
+				usdcAddress: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+				poolAddress: '0x8698c6DF1E354Ce3ED0dE508EF7AF4baB85D2F2D',
 			},
 		};
 		const getChainIdByUrl = url => {
@@ -19,7 +45,7 @@
 			}
 			return null;
 		};
-		const baseChainSelector = `0x${BigInt('10344971235874465080').toString(16)}`;
+		const baseChainSelector = `0x${BigInt('15971525489660198786').toString(16)}`;
 		class FunctionsJsonRpcProvider extends ethers.JsonRpcProvider {
 			constructor(url) {
 				super(url);
@@ -47,7 +73,9 @@
 		const promises = [];
 		for (const chainSelector in chainSelectors) {
 			const url =
-				chainSelectors[chainSelector].urls[Math.floor(Math.random() * chainSelectors[chainSelector].urls.length)];
+				chainSelectors[chainSelector].urls[
+					Math.floor(Math.random() * chainSelectors[chainSelector].urls.length)
+				];
 			const provider = new FunctionsJsonRpcProvider(url);
 			const wallet = new ethers.Wallet('0x' + secrets.POOL_MESSENGER_0_PRIVATE_KEY, provider);
 			const signer = wallet.connect(provider);
@@ -58,7 +86,11 @@
 		return Functions.encodeUint256(1n);
 	} catch (e) {
 		const {message, code} = e;
-		if (code === 'NONCE_EXPIRED' || message?.includes('replacement fee too low') || message?.includes('already known')) {
+		if (
+			code === 'NONCE_EXPIRED' ||
+			message?.includes('replacement fee too low') ||
+			message?.includes('already known')
+		) {
 			return Functions.encodeUint256(1n);
 		}
 		throw e;

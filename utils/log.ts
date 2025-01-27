@@ -2,7 +2,7 @@ import { CNetworkNames } from "../types/CNetwork";
 
 const networkColors: Record<CNetworkNames, string> = {
   localhost: "\x1b[30m", //grey
-  mainnet: "\x1b[30m", // grey
+  ethereum: "\x1b[30m", // grey
   arbitrum: "\x1b[34m", // blue
   polygon: "\x1b[35m", // magenta
   avalanche: "\x1b[31m", // red

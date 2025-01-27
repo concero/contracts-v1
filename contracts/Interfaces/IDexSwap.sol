@@ -2,30 +2,22 @@
 pragma solidity ^0.8.22;
 
 interface IDexSwap {
-    ///@notice Concero Enum to track DEXes
-    enum DexType {
-        UniswapV2,
-        UniswapV2FoT,
-        SushiV3Single,
-        UniswapV3Single,
-        SushiV3Multi,
-        UniswapV3Multi,
-        Aerodrome,
-        AerodromeFoT,
-        UniswapV2Ether,
-        WrapNative,
-        UnwrapWNative
-    }
-
-    ///@notice Concero Struct to track DEX Data
+    /// @notice Concero Struct to track DEX Data
+    /// @param dexRouter address of the DEX Router
+    /// @param fromToken address of the token to be swapped
+    /// @param fromAmount amount of token to be swapped
+    /// @param toToken address of the token to be received
+    /// @param toAmount amount of token to be received
+    /// @param toAmountMin minimum amount of token to be received
+    /// @param dexCallData encoded data for the DEX
     struct SwapData {
-        DexType dexType;
+        address dexRouter;
         address fromToken;
         uint256 fromAmount;
         address toToken;
         uint256 toAmount;
         uint256 toAmountMin;
-        bytes dexData;
+        bytes dexCallData;
     }
 
     /**

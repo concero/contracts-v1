@@ -36,7 +36,7 @@ contract ParentPoolCLFCLA is
     uint256 internal constant CCIP_ESTIMATED_TIME_TO_COMPLETE = 30 minutes;
     uint32 internal constant CLF_CALLBACK_GAS_LIMIT = 2_000_000;
     string internal constant JS_CODE =
-        "try{const [b,o,f]=bytesArgs;const m='https://raw.githubusercontent.com/';const u=m+'ethers-io/ethers.js/v6.10.0/dist/ethers.umd.min.js';const q=m+'concero/contracts-v1/'+'release'+`/tasks/CLFScripts/dist/pool/${f==='0x02' ? 'withdrawalLiquidityCollection':f==='0x01' ? 'redistributePoolsLiquidity':'getChildPoolsLiquidity'}.min.js`;const [t,p]=await Promise.all([fetch(u),fetch(q)]);const [e,c]=await Promise.all([t.text(),p.text()]);const g=async s=>{return('0x'+Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(v=>('0'+v.toString(16)).slice(-2).toLowerCase()).join(''));};const r=await g(c);const x=await g(e);if(r===b.toLowerCase()&& x===o.toLowerCase()){const ethers=new Function(e+';return ethers;')();return await eval(c);}throw new Error(`${r}!=${b}||${x}!=${o}`);}catch(e){throw new Error(e.message.slice(0,255));}";
+        "try{const [b,o,f]=bytesArgs;const m='https://raw.githubusercontent.com/';const u=m+'ethers-io/ethers.js/v6.10.0/dist/ethers.umd.min.js';const q=m+'concero/contracts-v1/'+'release'+`/tasks/CLFScripts/dist/pool/${f==='0x02' ? 'withdrawalLiquidityCollection':f==='0x03' ? 'redistributePoolsLiquidity':'getChildPoolsLiquidity'}.min.js`;const [t,p]=await Promise.all([fetch(u),fetch(q)]);const [e,c]=await Promise.all([t.text(),p.text()]);const g=async s=>{return('0x'+Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(v=>('0'+v.toString(16)).slice(-2).toLowerCase()).join(''));};const r=await g(c);const x=await g(e);if(r===b.toLowerCase()&& x===o.toLowerCase()){const ethers=new Function(e+';return ethers;')();return await eval(c);}throw new Error(`${r}!=${b}||${x}!=${o}`);}catch(e){throw new Error(e.message.slice(0,255));}";
 
     /* IMMUTABLE VARIABLES */
     bytes32 private immutable i_clfDonId;
@@ -73,6 +73,7 @@ contract ParentPoolCLFCLA is
      * @param err the error of the request sent
      * @dev response & err will never be empty or populated at same time.
      */
+    // solhint-disable-next-line chainlink-solidity/prefix-internal-functions-with-underscore
     function fulfillRequest(
         bytes32 requestId,
         bytes memory response,
@@ -322,37 +323,37 @@ contract ParentPoolCLFCLA is
     /**
      * @notice Function to update cross-chain rewards which will be paid to liquidity providers in the end of
      * withdraw period.
-     * @param _withdrawalRequest - pointer to the WithdrawRequest struct
-     * @param _childPoolsLiquidity The total liquidity of all child pools
+     * @param withdrawalId - pointer to the WithdrawRequest struct
+     * @param childPoolsLiquidity The total liquidity of all child pools
      * @dev This function must be called only by an allowed Messenger & must not revert
      * @dev _totalUSDCCrossChainBalance MUST have 10**6 decimals.
      */
     function _updateWithdrawalRequest(
-        IParentPool.WithdrawRequest storage _withdrawalRequest,
-        bytes32 _withdrawalId,
-        uint256 _childPoolsLiquidity
+        IParentPool.WithdrawRequest storage withdrawalRequest,
+        bytes32 withdrawalId,
+        uint256 childPoolsLiquidity
     ) private {
-        uint256 lpToBurn = _withdrawalRequest.lpAmountToBurn;
+        uint256 lpToBurn = withdrawalRequest.lpAmountToBurn;
         uint256 childPoolsCount = s_poolChainSelectors.length;
 
         uint256 amountToWithdrawWithUsdcDecimals = _calculateWithdrawableAmount(
-            _childPoolsLiquidity,
+            childPoolsLiquidity,
             lpToBurn,
             i_lpToken.totalSupply()
         );
         uint256 withdrawalPortionPerPool = amountToWithdrawWithUsdcDecimals / (childPoolsCount + 1);
 
-        _withdrawalRequest.amountToWithdraw = amountToWithdrawWithUsdcDecimals;
-        _withdrawalRequest.liquidityRequestedFromEachPool = withdrawalPortionPerPool;
-        _withdrawalRequest.remainingLiquidityFromChildPools =
+        withdrawalRequest.amountToWithdraw = amountToWithdrawWithUsdcDecimals;
+        withdrawalRequest.liquidityRequestedFromEachPool = withdrawalPortionPerPool;
+        withdrawalRequest.remainingLiquidityFromChildPools =
             amountToWithdrawWithUsdcDecimals -
             withdrawalPortionPerPool;
-        _withdrawalRequest.triggeredAtTimestamp = block.timestamp + WITHDRAWAL_COOLDOWN_SECONDS;
+        withdrawalRequest.triggeredAtTimestamp = block.timestamp + WITHDRAWAL_COOLDOWN_SECONDS;
 
-        s_withdrawalRequestIds.push(_withdrawalId);
+        s_withdrawalRequestIds.push(withdrawalId);
         emit WithdrawalRequestInitiated(
-            _withdrawalId,
-            msg.sender,
+            withdrawalId,
+            withdrawalRequest.lpAddress,
             block.timestamp + WITHDRAWAL_COOLDOWN_SECONDS
         );
     }

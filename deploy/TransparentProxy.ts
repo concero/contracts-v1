@@ -1,10 +1,7 @@
 import { Deployment } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import conceroNetworks from "../constants/conceroNetworks";
-import { updateEnvAddress } from "../utils/updateEnvVariable";
-import log from "../utils/log";
-import { getEnvAddress } from "../utils/getEnvVar";
-import { writeContractConfig } from "../constants/deploymentVariables";
+import { log, getEnvAddress, updateEnvAddress } from "../utils/";
 import { IProxyType } from "../types/deploymentVariables";
 
 const deployTransparentProxy: (hre: HardhatRuntimeEnvironment, proxyType: IProxyType) => Promise<void> =
@@ -24,7 +21,7 @@ const deployTransparentProxy: (hre: HardhatRuntimeEnvironment, proxyType: IProxy
       args: [initialImplementation, proxyAdmin, "0x"],
       log: true,
       autoMine: true,
-      gasLimit: writeContractConfig.gas,
+      gasLimit: 2_000_000n,
     })) as Deployment;
 
     if (live) {

@@ -15,7 +15,7 @@ const lpTokenAddress = process.env.LPTOKEN_BASE as Address;
 const poolAddress = process.env.PARENT_POOL_PROXY_BASE as Address;
 
 describe("withdraw usdc from pool\n", () => {
-  const { abi: ParentPoolAbi } = require("../artifacts/contracts/ParentPool.sol/ParentPool.json");
+  const { abi: ParentPoolAbi } = require("../../artifacts/contracts/ParentPool.sol/ParentPool.json");
   const srcPublicClient: PublicClient<HttpTransport, Chain, Account, RpcSchema> = createPublicClient({
     chain: chainsMap[srcChainSelector].viemChain,
     transport: chainsMap[srcChainSelector].viemTransport,

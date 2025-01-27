@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {console, Vm} from "forge-std/Test.sol";
+import {console, Vm} from "forge-std/src/Test.sol";
 import {BridgeBaseTest} from "./BridgeBaseTest.t.sol";
 import {IDexSwap} from "contracts/Interfaces/IDexSwap.sol";
 import {LibZip} from "solady/src/utils/LibZip.sol";
@@ -100,8 +100,8 @@ contract BridgeCompressionTest is BridgeBaseTest {
                 "ToAmountMin mismatch"
             );
             assertEq(
-                decompressedSwapData[i].dexData,
-                originalSwapData[i].dexData,
+                decompressedSwapData[i].dexCallData,
+                originalSwapData[i].dexCallData,
                 "DexData mismatch"
             );
         }
@@ -212,17 +212,17 @@ contract BridgeCompressionTest is BridgeBaseTest {
         uint24 fee = 3000;
         uint160 sqrtPriceLimitX96 = 0;
         uint256 deadline = block.timestamp + 3600;
-        bytes memory dexData = abi.encode(routerAddress, fee, sqrtPriceLimitX96, deadline);
+        bytes memory dexCallData = abi.encode(routerAddress, fee, sqrtPriceLimitX96, deadline);
 
         IDexSwap.SwapData[] memory _dstSwapData = new IDexSwap.SwapData[](1);
         IDexSwap.SwapData memory singleSwap = IDexSwap.SwapData({
-            dexType: IDexSwap.DexType.UniswapV3Single,
+            dexRouter: routerAddress,
             fromToken: usdcAvalanche,
             fromAmount: USER_FUNDS / 2,
             toToken: DAI_AVALANCHE,
             toAmount: TO_AMOUNT,
             toAmountMin: USER_FUNDS / 3,
-            dexData: dexData
+            dexCallData: dexCallData
         });
         _dstSwapData[0] = singleSwap;
 

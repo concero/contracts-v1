@@ -6,8 +6,8 @@
  */
 pragma solidity ^0.8.22;
 
-import {USDC_ARBITRUM, USDC_BASE, USDC_OPTIMISM, USDC_POLYGON, USDC_POLYGON_AMOY, USDC_ARBITRUM_SEPOLIA, USDC_BASE_SEPOLIA, USDC_OPTIMISM_SEPOLIA, USDC_AVALANCHE} from "./Constants.sol";
-import {CHAIN_ID_AVALANCHE, WRAPPED_NATIVE_AVALANCHE, CHAIN_ID_ETHEREUM, WRAPPED_NATIVE_ETHEREUM, CHAIN_ID_ARBITRUM, WRAPPED_NATIVE_ARBITRUM, CHAIN_ID_BASE, WRAPPED_NATIVE_BASE, CHAIN_ID_POLYGON, WRAPPED_NATIVE_POLYGON} from "./Constants.sol";
+import {USDC_ARBITRUM, USDC_BASE, USDC_OPTIMISM, USDC_POLYGON, USDC_POLYGON_AMOY, USDC_ARBITRUM_SEPOLIA, USDC_BASE_SEPOLIA, USDC_OPTIMISM_SEPOLIA, USDC_AVALANCHE, USDC_ETHEREUM, USDC_OPTIMISM, USDC_SEPOLIA, USDC_FUJI} from "./Constants.sol";
+import {CHAIN_ID_AVALANCHE, WRAPPED_NATIVE_AVALANCHE, CHAIN_ID_ETHEREUM, WRAPPED_NATIVE_ETHEREUM, CHAIN_ID_ARBITRUM, WRAPPED_NATIVE_ARBITRUM, CHAIN_ID_BASE, WRAPPED_NATIVE_BASE, CHAIN_ID_POLYGON, WRAPPED_NATIVE_POLYGON, WRAPPED_NATIVE_OPTIMISM, CHAIN_ID_OPTIMISM} from "./Constants.sol";
 import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
 
 error NotMessenger();
@@ -19,6 +19,7 @@ contract InfraCommon {
     /* CONSTANT VARIABLES */
     uint256 internal constant USDC_DECIMALS = 1_000_000;
     uint256 internal constant STANDARD_TOKEN_DECIMALS = 1 ether;
+    address internal constant ZERO_ADDRESS = address(0);
 
     /* IMMUTABLE VARIABLES */
     address private immutable i_msgr0;
@@ -62,7 +63,11 @@ contract InfraCommon {
             } else if (_chainIndex == IInfraStorage.Chain.pol) {
                 return block.chainid == 137 ? USDC_POLYGON : USDC_POLYGON_AMOY;
             } else if (_chainIndex == IInfraStorage.Chain.avax) {
-                return USDC_AVALANCHE;
+                return block.chainid == 43114 ? USDC_AVALANCHE : USDC_FUJI;
+            } else if (_chainIndex == IInfraStorage.Chain.opt) {
+                return block.chainid == 10 ? USDC_OPTIMISM : USDC_OPTIMISM_SEPOLIA;
+            } else if (_chainIndex == IInfraStorage.Chain.eth) {
+                return block.chainid == 1 ? USDC_ETHEREUM : USDC_SEPOLIA;
             } else {
                 revert ChainIndexOutOfBounds();
             }
@@ -79,19 +84,21 @@ contract InfraCommon {
         return (_messenger == i_msgr0 || _messenger == i_msgr1 || _messenger == i_msgr2);
     }
 
-    function _getWrappedNative() internal view returns (address _wrappedAddress) {
+    function _getWrappedNative() internal view returns (address) {
         uint256 chainId = block.chainid;
 
         if (chainId == CHAIN_ID_ARBITRUM) {
-            _wrappedAddress = WRAPPED_NATIVE_ARBITRUM;
+            return WRAPPED_NATIVE_ARBITRUM;
         } else if (chainId == CHAIN_ID_BASE) {
-            _wrappedAddress = WRAPPED_NATIVE_BASE;
+            return WRAPPED_NATIVE_BASE;
         } else if (chainId == CHAIN_ID_POLYGON) {
-            _wrappedAddress = WRAPPED_NATIVE_POLYGON;
+            return WRAPPED_NATIVE_POLYGON;
         } else if (chainId == CHAIN_ID_ETHEREUM) {
-            _wrappedAddress = WRAPPED_NATIVE_ETHEREUM;
+            return WRAPPED_NATIVE_ETHEREUM;
         } else if (chainId == CHAIN_ID_AVALANCHE) {
-            _wrappedAddress = WRAPPED_NATIVE_AVALANCHE;
+            return WRAPPED_NATIVE_AVALANCHE;
+        } else if (chainId == CHAIN_ID_OPTIMISM) {
+            return WRAPPED_NATIVE_OPTIMISM;
         } else {
             revert ChainNotSupported();
         }

@@ -30,6 +30,17 @@ import updateParentPoolHashesTask from "./pools/updateParentPoolHashesTask";
 import removeParentPoolChildPoolsTask from "./pools/removeParentPoolChildPoolsTask";
 import updateInfraHashesTask from "./deployInfra/updateInfraHashesTask";
 import { getWithdrawalStatuses } from "./getWithdrawalStatuses";
+import addNewPoolToParentPoolTask from "./pools/addNewPoolToParentPoolTask";
+import addNewPoolToChildPoolTask from "./pools/addNewPoolToChildPoolTask";
+import getPoolBalances from "./pools/getPoolBalances";
+import deployPauseDummy from "./deployPauseDummy";
+
+import populateWithdrawalRequests from "./populateWithdrawalRequests";
+import { getFailedCCIPTxs } from "./getFailedCCIPTxs";
+
+import updateClfPremiumFeesTask from "./deployInfra/updateClfPremiumFeesTask";
+import { deployDeterministically } from "./deterministicDeployment";
+
 export default {
   deployConceroDexSwap,
   deployConceroOrchestrator,
@@ -60,4 +71,12 @@ export default {
   removeParentPoolChildPoolsTask,
   updateInfraHashesTask,
   getWithdrawalStatuses,
+  addNewPoolToParentPoolTask,
+  addNewPoolToChildPoolTask,
+  deployPauseDummy,
+  populateWithdrawalRequests,
+  getFailedCCIPTxs,
+  getPoolBalances,
+  updateClfPremiumFeesTask,
+  deployDeterministically,
 };

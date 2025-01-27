@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.22;
 
-import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_OPTIMISM, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, USDC_ARBITRUM, USDC_BASE, USDC_POLYGON, USDC_AVALANCHE} from "./Constants.sol";
+import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_OPTIMISM, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, CHAIN_SELECTOR_ETHEREUM} from "./Constants.sol";
 import {InfraCommon} from "./InfraCommon.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
 import {IDexSwap} from "./Interfaces/IDexSwap.sol";
 import {IInfraCLF} from "./Interfaces/IInfraCLF.sol";
 import {IInfraOrchestrator, IOrchestratorViewDelegate} from "./Interfaces/IInfraOrchestrator.sol";
-import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
-import {InfraStorage} from "./Libraries/InfraStorage.sol";
 import {InfraStorageSetters} from "./Libraries/InfraStorageSetters.sol";
 import {LibConcero} from "./Libraries/LibConcero.sol";
 import {IFunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/interfaces/IFunctionsClient.sol";
@@ -41,7 +39,7 @@ contract InfraOrchestrator is
     using SafeERC20 for IERC20;
 
     /* CONSTANT VARIABLES */
-    uint8 internal constant SUPPORTED_CHAINS_COUNT = 4;
+    uint8 internal constant SUPPORTED_CHAINS_COUNT = 6;
     uint16 internal constant MAX_INTEGRATOR_FEE_BPS = 1000;
     uint16 internal constant CONCERO_FEE_FACTOR = 1000;
     uint16 internal constant BPS_DIVISOR = 10000;
@@ -75,7 +73,7 @@ contract InfraOrchestrator is
 
     /* MODIFIERS */
     modifier validateBridgeData(BridgeData memory bridgeData) {
-        if (bridgeData.amount == 0 || bridgeData.receiver == address(0)) {
+        if (bridgeData.amount == 0 || bridgeData.receiver == ZERO_ADDRESS) {
             revert InvalidBridgeData();
         }
         _;
@@ -109,7 +107,6 @@ contract InfraOrchestrator is
     ) external returns (uint256) {
         bytes memory delegateCallArgs = abi.encodeWithSelector(
             IConceroBridge.getSrcTotalFeeInUSDC.selector,
-            tokenType,
             dstChainSelector,
             amount
         );
@@ -159,13 +156,13 @@ contract InfraOrchestrator is
         BridgeData memory bridgeData,
         IDexSwap.SwapData[] calldata srcSwapData,
         bytes memory compressedDstSwapData,
-        Integration memory integration
+        Integration calldata integration
     )
         external
         payable
+        nonReentrant
         validateSrcSwapData(srcSwapData)
         validateBridgeData(bridgeData)
-        nonReentrant
     {
         address usdc = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
 
@@ -173,7 +170,7 @@ contract InfraOrchestrator is
             revert InvalidSwapData();
         }
 
-        _obtainSwapDataFromToken(srcSwapData);
+        _transferTokenFromUser(srcSwapData);
 
         uint256 amountReceivedFromSwap = _swap(srcSwapData, address(this));
         bridgeData.amount =
@@ -192,9 +189,9 @@ contract InfraOrchestrator is
     function swap(
         IDexSwap.SwapData[] memory swapData,
         address receiver,
-        Integration memory integration
-    ) external payable validateSrcSwapData(swapData) nonReentrant {
-        _obtainSwapDataFromToken(swapData);
+        Integration calldata integration
+    ) external payable nonReentrant validateSrcSwapData(swapData) {
+        _transferTokenFromUser(swapData);
         swapData = _collectSwapFee(swapData, integration);
         _swap(swapData, receiver);
     }
@@ -207,8 +204,8 @@ contract InfraOrchestrator is
     function bridge(
         BridgeData memory bridgeData,
         bytes memory compressedDstSwapData,
-        Integration memory integration
-    ) external payable validateBridgeData(bridgeData) nonReentrant {
+        Integration calldata integration
+    ) external payable nonReentrant validateBridgeData(bridgeData) {
         address fromToken = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
         LibConcero.transferFromERC20(fromToken, msg.sender, address(this), bridgeData.amount);
         bridgeData.amount -= _collectIntegratorFee(fromToken, bridgeData.amount, integration);
@@ -218,7 +215,7 @@ contract InfraOrchestrator is
 
     /**
      * @notice Wrapper function to delegate call to ConceroBridge.addUnconfirmedTX
-     * @param conceroMessageId the Concerro message ID
+     * @param conceroMessageId the Concero message ID
      * @param srcChainSelector the source chain selector
      * @param txDataHash the transaction data hash
      */
@@ -276,7 +273,7 @@ contract InfraOrchestrator is
                 s_integratorFeesAmountByToken[msg.sender][token] = 0;
                 s_totalIntegratorFeesAmountByToken[token] -= amount;
 
-                if (token == address(0)) {
+                if (token == ZERO_ADDRESS) {
                     (bool success, ) = msg.sender.call{value: amount}("");
                     if (!success) revert TransferFailed();
                 } else {
@@ -296,8 +293,8 @@ contract InfraOrchestrator is
     function withdrawConceroFees(
         address recipient,
         address[] calldata tokens
-    ) external payable onlyOwner nonReentrant {
-        if (recipient == address(0)) {
+    ) external payable nonReentrant onlyOwner {
+        if (recipient == ZERO_ADDRESS) {
             revert InvalidRecipient();
         }
         address usdc = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
@@ -315,7 +312,9 @@ contract InfraOrchestrator is
                     CHAIN_SELECTOR_ARBITRUM,
                     CHAIN_SELECTOR_BASE,
                     CHAIN_SELECTOR_POLYGON,
-                    CHAIN_SELECTOR_AVALANCHE
+                    CHAIN_SELECTOR_AVALANCHE,
+                    CHAIN_SELECTOR_ETHEREUM,
+                    CHAIN_SELECTOR_OPTIMISM
                 ];
                 for (uint256 j = 0; j < SUPPORTED_CHAINS_COUNT; ++j) {
                     batchedReserves += s_pendingSettlementTxAmountByDstChain[chainSelectors[j]];
@@ -330,7 +329,7 @@ contract InfraOrchestrator is
                     revert InvalidAmount();
                 }
 
-                if (token == address(0)) {
+                if (token == ZERO_ADDRESS) {
                     (bool success, ) = payable(recipient).call{value: availableBalance}("");
                     if (!success) {
                         revert TransferFailed();
@@ -366,11 +365,11 @@ contract InfraOrchestrator is
     }
 
     /* INTERNAL FUNCTIONS */
-    function _obtainSwapDataFromToken(IDexSwap.SwapData[] memory swapData) internal {
+    function _transferTokenFromUser(IDexSwap.SwapData[] memory swapData) internal {
         address initialToken = swapData[0].fromToken;
         uint256 initialAmount = swapData[0].fromAmount;
 
-        if (initialToken != address(0)) {
+        if (initialToken != ZERO_ADDRESS) {
             LibConcero.transferFromERC20(initialToken, msg.sender, address(this), initialAmount);
         } else {
             if (initialAmount != msg.value) revert InvalidAmount();
@@ -422,7 +421,7 @@ contract InfraOrchestrator is
 
     function _collectSwapFee(
         IDexSwap.SwapData[] memory swapData,
-        Integration memory integration
+        Integration calldata integration
     ) internal returns (IDexSwap.SwapData[] memory) {
         swapData[0].fromAmount -= (swapData[0].fromAmount / CONCERO_FEE_FACTOR);
 
@@ -438,13 +437,12 @@ contract InfraOrchestrator is
     function _collectIntegratorFee(
         address token,
         uint256 amount,
-        Integration memory integration
+        Integration calldata integration
     ) internal returns (uint256) {
-        if (integration.integrator == address(0)) return 0;
+        if (integration.integrator == ZERO_ADDRESS || integration.feeBps == 0) return 0;
         if (integration.feeBps > MAX_INTEGRATOR_FEE_BPS) revert InvalidIntegratorFeeBps();
 
         uint256 integratorFeeAmount = (amount * integration.feeBps) / BPS_DIVISOR;
-        if (integratorFeeAmount == 0) return 0;
 
         s_integratorFeesAmountByToken[integration.integrator][token] += integratorFeeAmount;
         s_totalIntegratorFeesAmountByToken[token] += integratorFeeAmount;

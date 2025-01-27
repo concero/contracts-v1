@@ -1,4 +1,4 @@
-import { CNetwork } from "../../../types/CNetwork";
+import { CNetwork, CNetworkNames } from "../../../types/CNetwork";
 import {
   err,
   formatGas,
@@ -25,6 +25,7 @@ import {
   viemReceiptConfig,
 } from "../../../constants";
 import { ethersV6CodeUrl, infraDstJsCodeUrl, infraSrcJsCodeUrl } from "../../../constants/functionsJsCodeUrls";
+import { Address } from "viem";
 
 const resetLastGasPrices = async (deployableChain: CNetwork, chains: CNetwork[], abi: any) => {
   const conceroProxyAddress = getEnvVar(`CONCERO_INFRA_PROXY_${networkEnvKeys[deployableChain.name]}`);
@@ -267,33 +268,47 @@ export async function setDonSecretsSlotId(deployableChain: CNetwork, slotId: num
   }
 }
 
+const allowedRoutersByChain: Record<Partial<CNetworkNames>, Array<Address>> = {
+  arbitrum: [
+    getEnvVar("SUSHISWAP_ROUTER_ARBITRUM"),
+    // getEnvVar("UNISWAP_ROUTER_ARBITRUM"),
+    // getEnvVar("WETH_ARBITRUM"),
+    // getEnvVar("UNI_02_ROUTER_ARBITRUM"),
+  ] as Array<Address>,
+  polygon: [getEnvVar("SUSHISWAP_ROUTER_POLYGON")],
+  base: [getEnvVar("SUSHISWAP_ROUTER_BASE")],
+  avalanche: [getEnvVar("SUSHISWAP_ROUTER_AVALANCHE")],
+};
+
 export async function setDexSwapAllowedRouters(deployableChain: CNetwork, abi: any) {
   const { viemChain: dcViemChain, name: dcName } = deployableChain;
   const [conceroProxy, conceroProxyAlias] = getEnvAddress(ProxyEnum.infraProxy, dcName);
-  const [allowedRouter, allowedRouterAlias] = getEnvAddress("uniswapRouter", dcName);
   const { walletClient, publicClient, account } = getFallbackClients(deployableChain);
+  const allowedRouters = allowedRoutersByChain[dcName];
 
-  try {
-    const { request: setDexRouterReq } = await publicClient.simulateContract({
-      address: conceroProxy,
-      abi,
-      functionName: "setDexRouterAddress",
-      account,
-      args: [allowedRouter, true],
-      chain: dcViemChain,
-    });
-    const setDexRouterHash = await walletClient.writeContract(setDexRouterReq);
-    const { cumulativeGasUsed: setDexRouterGasUsed } = await publicClient.waitForTransactionReceipt({
-      ...viemReceiptConfig,
-      hash: setDexRouterHash,
-    });
-    log(
-      `[Set] ${conceroProxyAlias}.dexRouterAddress -> ${allowedRouterAlias}. Gas: ${formatGas(setDexRouterGasUsed)}`,
-      "setDexRouterAddress",
-      dcName,
-    );
-  } catch (error) {
-    err(`${error.message}`, "setDexRouterAddress", dcName);
+  for (const allowedRouter of allowedRouters) {
+    try {
+      const { request: setDexRouterReq } = await publicClient.simulateContract({
+        address: conceroProxy,
+        abi,
+        functionName: "setDexRouterAddress",
+        account,
+        args: [allowedRouter, true],
+        chain: dcViemChain,
+      });
+      const setDexRouterHash = await walletClient.writeContract(setDexRouterReq);
+      const { cumulativeGasUsed: setDexRouterGasUsed } = await publicClient.waitForTransactionReceipt({
+        ...viemReceiptConfig,
+        hash: setDexRouterHash,
+      });
+      log(
+        `[Set] ${conceroProxyAlias}.dexRouterAddress -> ${allowedRouter}. Gas: ${formatGas(setDexRouterGasUsed)}`,
+        "setDexRouterAddress",
+        dcName,
+      );
+    } catch (error) {
+      err(`${error.message}`, "setDexRouterAddress", dcName);
+    }
   }
 }
 
@@ -306,7 +321,7 @@ export async function setFunctionsPremiumFees(deployableChain: CNetwork, abi: an
 
   for (const chain of chainsToSet) {
     try {
-      const feeToSet = clfFees[dcName] ?? defaultCLFfee;
+      const feeToSet = clfFees[chain.name] ?? defaultCLFfee;
       const { request: setFunctionsPremiumFeesReq } = await publicClient.simulateContract({
         address: conceroProxy,
         abi,

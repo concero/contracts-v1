@@ -1,5 +1,5 @@
 import { task } from "hardhat/config";
-import log, { getClients, getEnvVar } from "../../utils";
+import { log, getClients, getEnvVar } from "../../utils";
 import { conceroNetworks, networkEnvKeys } from "../../constants";
 import fs from "fs";
 
@@ -8,9 +8,9 @@ task("populate-withdrawal-requests", "Reads withdrawal statuses from JSON and up
     const chain = conceroNetworks.base;
     try {
       const { publicClient, walletClient, account } = getClients(chain.name, chain.url);
-      const contractAddress = getEnvVar(`CONCERO_AUTOMATION_${networkEnvKeys[chain.name]}`);
-      console.log(contractAddress);
-      const { abi: claAbi } = await import("../../artifacts/contracts/ConceroAutomation.sol/ConceroAutomation.json");
+      const contractAddress = getEnvVar(`PARENT_POOL_PROXY_${networkEnvKeys[chain.name]}`);
+
+      const { abi: parentPoolAbi } = await import("../../artifacts/contracts/ParentPool.sol/ParentPool.json");
 
       // Read JSON file
       const jsonData = fs.readFileSync("withdrawal-statuses.json", "utf8");
@@ -29,8 +29,8 @@ task("populate-withdrawal-requests", "Reads withdrawal statuses from JSON and up
         // Prepare transaction
         const { request } = await publicClient.simulateContract({
           address: contractAddress,
-          abi: claAbi,
-          functionName: "addWithdrawRequests",
+          abi: parentPoolAbi,
+          functionName: "dev_addWithdrawalIds",
           args: [idChunk, triggeredChunk],
           account,
           chain: chain.viemChain,

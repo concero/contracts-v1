@@ -5,6 +5,7 @@ import updateEnvVariable from "../utils/updateEnvVariable";
 import log from "../utils/log";
 import { getEnvVar } from "../utils";
 import { messengers } from "../constants";
+import { getGasParameters, getGasPrice } from "../utils/getGasPrice";
 
 interface ConstructorArgs {
   slotId?: number;
@@ -64,6 +65,7 @@ const deployConceroBridge: (hre: HardhatRuntimeEnvironment, constructorArgs?: Co
     };
 
     const args = { ...defaultArgs, ...constructorArgs };
+    const { maxFeePerGas, maxPriorityFeePerGas } = await getGasParameters(conceroNetworks[name]);
 
     const deployment = (await deploy("ConceroBridge", {
       from: deployer,
@@ -80,6 +82,8 @@ const deployConceroBridge: (hre: HardhatRuntimeEnvironment, constructorArgs?: Co
         args.messengers,
       ],
       autoMine: true,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
     })) as Deployment;
 
     if (live) {

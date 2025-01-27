@@ -17,7 +17,6 @@ import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
 import {IParentPoolCLFCLA, IParentPoolCLFCLAViewDelegate} from "./Interfaces/IParentPoolCLFCLA.sol";
 import {IParentPool} from "./Interfaces/IParentPool.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import {LPToken} from "./LPToken.sol";
 import {LibConcero} from "./Libraries/LibConcero.sol";
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 import {ParentPoolCommon} from "./ParentPoolCommon.sol";
@@ -47,6 +46,7 @@ error NotOwner();
 error OnlyRouterCanFulfill(address);
 error Unauthorized();
 error NotUsdcToken();
+error DepositDeadlinePassed();
 
 contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolStorage {
     /* TYPE DECLARATIONS */
@@ -118,6 +118,10 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
         return s_loansInUse;
     }
 
+    function getWithdrawalsOnTheWayAmount() external view returns (uint256) {
+        return s_withdrawalsOnTheWayAmount;
+    }
+
     function getDepositsOnTheWay()
         external
         view
@@ -128,6 +132,10 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
     function getPendingWithdrawalRequestIds() external view returns (bytes32[] memory) {
         return s_withdrawalRequestIds;
+    }
+
+    function getLiquidityCap() external view returns (uint256) {
+        return s_liquidityCap;
     }
 
     function handleOracleFulfillment(
@@ -301,6 +309,9 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
         if (msg.sender != lpAddress) {
             revert NotAllowedToCompleteDeposit();
         }
+        if (block.timestamp > request.deadline) {
+            revert DepositDeadlinePassed();
+        }
         if (childPoolsLiquiditySnapshot == 0) {
             revert DepositRequestNotReady();
         }
@@ -427,8 +438,7 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
     function distributeLiquidity(
         uint64 _chainSelector,
         uint256 _amountToSend,
-        bytes32 _requestId,
-        ICCIP.CcipTxType _ccipTxType
+        bytes32 _requestId
     ) external onlyProxyContext onlyMessenger {
         if (s_childPools[_chainSelector] == address(0)) revert InvalidAddress();
         if (s_distributeLiquidityRequestProcessed[_requestId]) {
@@ -436,7 +446,7 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
         } else {
             s_distributeLiquidityRequestProcessed[_requestId] = true;
         }
-        _ccipSend(_chainSelector, _amountToSend, _ccipTxType);
+        _ccipSend(_chainSelector, _amountToSend, ICCIP.CcipTxType.liquidityRebalancing);
     }
 
     function withdrawDepositFees() external payable onlyOwner {
@@ -493,7 +503,7 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
         s_collectLiquidityJsCodeHashSum = _hashSum;
     }
 
-    function setDistributeLiquidityJsCodeHashSum(bytes32 _hashSum) external payable onlyOwner {
+    function setRedistributeLiquidityJsCodeHashSum(bytes32 _hashSum) external payable onlyOwner {
         s_distributeLiquidityJsCodeHashSum = _hashSum;
     }
 
@@ -532,22 +542,17 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
         if (isRebalancingNeeded) {
             bytes32 distributeLiquidityRequestId = keccak256(
-                abi.encodePacked(
-                    _pool,
-                    _chainSelector,
-                    RedistributeLiquidityType.addPool,
-                    block.timestamp,
-                    block.number
-                )
+                abi.encodePacked(_pool, _chainSelector, RedistributeLiquidityType.addPool)
             );
 
-            bytes[] memory args = new bytes[](6);
+            bytes[] memory args = new bytes[](7);
             args[0] = abi.encodePacked(s_distributeLiquidityJsCodeHashSum);
             args[1] = abi.encodePacked(s_ethersHashSum);
             args[2] = abi.encodePacked(CLFRequestType.liquidityRedistribution);
             args[3] = abi.encodePacked(_chainSelector);
             args[4] = abi.encodePacked(distributeLiquidityRequestId);
             args[5] = abi.encodePacked(RedistributeLiquidityType.addPool);
+            args[6] = abi.encodePacked(block.chainid);
 
             bytes memory delegateCallArgs = abi.encodeWithSelector(
                 IParentPoolCLFCLA.sendCLFRequest.selector,
@@ -572,29 +577,29 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
             }
         }
 
-        bytes32 distributeLiquidityRequestId = keccak256(
-            abi.encodePacked(
-                removedPool,
-                _chainSelector,
-                RedistributeLiquidityType.removePool,
-                block.timestamp,
-                block.number
-            )
-        );
-
-        bytes[] memory args = new bytes[](6);
-        args[0] = abi.encodePacked(s_distributeLiquidityJsCodeHashSum);
-        args[1] = abi.encodePacked(s_ethersHashSum);
-        args[2] = abi.encodePacked(CLFRequestType.liquidityRedistribution);
-        args[3] = abi.encodePacked(_chainSelector);
-        args[4] = abi.encodePacked(distributeLiquidityRequestId);
-        args[5] = abi.encodePacked(RedistributeLiquidityType.removePool);
-
-        bytes memory delegateCallArgs = abi.encodeWithSelector(
-            IParentPoolCLFCLA.sendCLFRequest.selector,
-            args
-        );
-        LibConcero.safeDelegateCall(address(i_parentPoolCLFCLA), delegateCallArgs);
+        //        bytes32 distributeLiquidityRequestId = keccak256(
+        //            abi.encodePacked(
+        //                removedPool,
+        //                _chainSelector,
+        //                RedistributeLiquidityType.removePool,
+        //                block.timestamp,
+        //                block.number
+        //            )
+        //        );
+        //
+        //        bytes[] memory args = new bytes[](6);
+        //        args[0] = abi.encodePacked(s_distributeLiquidityJsCodeHashSum);
+        //        args[1] = abi.encodePacked(s_ethersHashSum);
+        //        args[2] = abi.encodePacked(CLFRequestType.liquidityRedistribution);
+        //        args[3] = abi.encodePacked(_chainSelector);
+        //        args[4] = abi.encodePacked(distributeLiquidityRequestId);
+        //        args[5] = abi.encodePacked(RedistributeLiquidityType.removePool);
+        //
+        //        bytes memory delegateCallArgs = abi.encodeWithSelector(
+        //            IParentPoolCLFCLA.sendCLFRequest.selector,
+        //            args
+        //        );
+        //        LibConcero.safeDelegateCall(address(i_parentPoolCLFCLA), delegateCallArgs);
     }
 
     /* INTERNAL FUNCTIONS */
@@ -831,14 +836,11 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
     function _findLowestDepositOnTheWayUnusedIndex() internal returns (uint8) {
         uint8 index;
-        for (uint8 i = 1; i < MAX_DEPOSITS_ON_THE_WAY_COUNT; ) {
+        for (uint8 i = 1; i < MAX_DEPOSITS_ON_THE_WAY_COUNT; i++) {
             if (s_depositsOnTheWayArray[i].ccipMessageId == bytes32(0)) {
                 index = i;
                 s_latestDepositOnTheWayIndex = i;
                 break;
-            }
-            unchecked {
-                ++i;
             }
         }
 

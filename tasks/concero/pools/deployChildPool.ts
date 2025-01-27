@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import deployChildPool from "../../../deploy/ChildPool";
-import { setChildProxyVariables } from "./setChildProxyVariables";
+import { setChildPoolProxyVariables } from "./setChildPoolProxyVariables";
 import deployProxyAdmin from "../../../deploy/ConceroProxyAdmin";
 import deployTransparentProxy from "../../../deploy/TransparentProxy";
 import { upgradeProxyImplementation } from "../upgradeProxyImplementation";
@@ -32,7 +32,7 @@ task("deploy-child-pool", "Deploy the pool")
     }
 
     if (taskArgs.setvars) {
-      await setChildProxyVariables(hre);
+      await setChildPoolProxyVariables(hre);
     }
   });
 

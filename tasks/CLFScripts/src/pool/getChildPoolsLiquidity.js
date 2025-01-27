@@ -1,11 +1,11 @@
 (async () => {
 	const chainSelectors = {
-		['${CL_CCIP_CHAIN_SELECTOR_ARBITRUM_SEPOLIA}']: {
-			urls: [`https://arbitrum-sepolia.infura.io/v3/${secrets.INFURA_API_KEY}`],
-			chainId: '0x66eee',
-			usdcAddress: '${USDC_ARBITRUM_SEPOLIA}',
-			poolAddress: '${CHILD_POOL_PROXY_ARBITRUM_SEPOLIA}',
-		},
+		// ['${CL_CCIP_CHAIN_SELECTOR_ARBITRUM_SEPOLIA}']: {
+		// 	urls: [`https://arbitrum-sepolia.infura.io/v3/${secrets.INFURA_API_KEY}`],
+		// 	chainId: '0x66eee',
+		// 	usdcAddress: '${USDC_ARBITRUM_SEPOLIA}',
+		// 	poolAddress: '${CHILD_POOL_PROXY_ARBITRUM_SEPOLIA}',
+		// },
 
 		// ['${CL_CCIP_CHAIN_SELECTOR_FUJI}']: {
 		// 	urls: [`https://avalanche-fuji.infura.io/v3/${secrets.INFURA_API_KEY}`],
@@ -13,43 +13,49 @@
 		// 	usdcAddress: '${USDC_FUJI}',
 		// 	poolAddress: '${CHILD_POOL_PROXY_FUJI}',
 		// },
-
-		['${CL_CCIP_CHAIN_SELECTOR_BASE_SEPOLIA}']: {
-			urls: [`https://base-sepolia.g.alchemy.com/v2/${secrets.ALCHEMY_API_KEY}`],
-			chainId: '0x14a34',
-			usdcAddress: '${USDC_BASE_SEPOLIA}',
-			poolAddress: '${PARENT_POOL_PROXY_BASE_SEPOLIA}',
-		},
+		//
+		// ['${CL_CCIP_CHAIN_SELECTOR_BASE_SEPOLIA}']: {
+		// 	urls: [`https://base-sepolia.g.alchemy.com/v2/${secrets.ALCHEMY_API_KEY}`],
+		// 	chainId: '0x14a34',
+		// 	usdcAddress: '${USDC_BASE_SEPOLIA}',
+		// 	poolAddress: '${PARENT_POOL_PROXY_BASE_SEPOLIA}',
+		// },
 
 		// mainnets
-		// ['${CL_CCIP_CHAIN_SELECTOR_ARBITRUM}']: {
-		// 	urls: [`https://arbitrum-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
-		// 	chainId: '0xa4b1',
-		// 	usdcAddress: '${USDC_ARBITRUM}',
-		// 	poolAddress: '${CHILD_POOL_PROXY_ARBITRUM}',
-		// },
-		// ['${CL_CCIP_CHAIN_SELECTOR_POLYGON}']: {
-		// 	urls: [`https://polygon-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
-		// 	chainId: '0x89',
-		// 	usdcAddress: '${USDC_POLYGON}',
-		// 	poolAddress: '${CHILD_POOL_PROXY_POLYGON}',
-		// },
-		// ['${CL_CCIP_CHAIN_SELECTOR_AVALANCHE}']: {
-		// 	urls: [`https://avalanche-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
-		// 	chainId: '0xa86a',
-		// 	usdcAddress: '${USDC_AVALANCHE}',
-		// 	poolAddress: '${CHILD_POOL_PROXY_AVALANCHE}',
-		// },
-		// ['${CL_CCIP_CHAIN_SELECTOR_BASE}']: {
-		// 	urls: [`https://base-mainnet.g.alchemy.com/v2/${secrets.PARENT_POOL_ALCHEMY_API_KEY}`],
-		// 	chainId: '0x2105',
-		// 	usdcAddress: '${USDC_BASE}',
-		// 	poolAddress: '${PARENT_POOL_PROXY_BASE}',
-		// },
+		['${CL_CCIP_CHAIN_SELECTOR_ARBITRUM}']: {
+			urls: [`https://arbitrum-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa4b1',
+			usdcAddress: '${USDC_ARBITRUM}',
+			poolAddress: '${CHILD_POOL_PROXY_ARBITRUM}',
+		},
+		['${CL_CCIP_CHAIN_SELECTOR_POLYGON}']: {
+			urls: [`https://polygon-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0x89',
+			usdcAddress: '${USDC_POLYGON}',
+			poolAddress: '${CHILD_POOL_PROXY_POLYGON}',
+		},
+		['${CL_CCIP_CHAIN_SELECTOR_AVALANCHE}']: {
+			urls: [`https://avalanche-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa86a',
+			usdcAddress: '${USDC_AVALANCHE}',
+			poolAddress: '${CHILD_POOL_PROXY_AVALANCHE}',
+		},
+		['${CL_CCIP_CHAIN_SELECTOR_BASE}']: {
+			urls: [`https://base-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0x2105',
+			usdcAddress: '${USDC_BASE}',
+			poolAddress: '${PARENT_POOL_PROXY_BASE}',
+		},
+		['${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}']: {
+			urls: [`https://optimism-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa',
+			usdcAddress: '${USDC_OPTIMISM}',
+			poolAddress: '${CHILD_POOL_PROXY_OPTIMISM}',
+		},
 	};
 
-	// const baseChainSelector = '${CL_CCIP_CHAIN_SELECTOR_BASE}';
-	const baseChainSelector = '${CL_CCIP_CHAIN_SELECTOR_BASE_SEPOLIA}';
+	const baseChainSelector = '${CL_CCIP_CHAIN_SELECTOR_BASE}';
+	// const baseChainSelector = '${CL_CCIP_CHAIN_SELECTOR_BASE_SEPOLIA}';
 	const erc20Abi = ['function balanceOf(address) external view returns (uint256)'];
 	const poolAbi = [
 		'function s_loansInUse() external view returns (uint256)',

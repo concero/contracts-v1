@@ -1,9 +1,9 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import log from "../../../utils/log";
 import { formatEther } from "viem";
-import { getEthersV6FallbackSignerAndProvider } from "../../../utils/getEthersSignerAndProvider";
+import { log, getEthersV6FallbackSignerAndProvider, getEthersV5FallbackSignerAndProvider } from "../../../utils/";
 import { TransactionOptions } from "@chainlink/functions-toolkit";
+import { conceroNetworks } from "../../../constants";
 
 const { SubscriptionManager } = require("@chainlink/functions-toolkit");
 
@@ -12,8 +12,8 @@ task("clf-sub-accept", "Accepts ownership of an Functions subscription after a t
   .addParam("subid", "Subscription ID")
   .setAction(async taskArgs => {
     const hre: HardhatRuntimeEnvironment = require("hardhat");
-    const { linkToken, functionsRouter, confirmations, name, url } = conceroNetworks[hre.network.name];
-    const { signer } = getEthersV6FallbackSignerAndProvider(name);
+    const { linkToken, functionsRouter, confirmations, name } = conceroNetworks[hre.network.name];
+    const { signer } = getEthersV5FallbackSignerAndProvider(name);
     // const { signer: v6Signer, provider: v6Provider } = getEthersV6SignerAndProvider(url);
     // const { gasPrice } = await v6Provider.getFeeData();
     const subscriptionId = parseInt(taskArgs.subid);
@@ -33,7 +33,7 @@ task("clf-sub-accept", "Accepts ownership of an Functions subscription after a t
 
     const currentOwner = (await sm.getSubscriptionInfo(subscriptionId)).owner;
     log(
-      `Accepting ownership of subscription ${subscriptionId} from current owner ${currentOwner}...`,
+      `Accepting ownership of subscription ${subscriptionId} of current owner ${currentOwner} to ${signer.address}`,
       "clf-sub-accept",
       name,
     );

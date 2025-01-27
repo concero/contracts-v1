@@ -1,10 +1,11 @@
 import { Deployment } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import conceroNetworks, { networkEnvKeys } from "../constants/conceroNetworks";
+import { conceroNetworks, networkEnvKeys } from "../constants/conceroNetworks";
 import updateEnvVariable from "../utils/updateEnvVariable";
 import log from "../utils/log";
-import { getEnvVar } from "../utils";
+import { getEnvVar, getFallbackClients } from "../utils";
 import { messengers } from "../constants";
+import { getGasParameters, getGasPrice } from "../utils/getGasPrice";
 
 const deployConceroDexSwap: (hre: HardhatRuntimeEnvironment) => Promise<void> = async function (
   hre: HardhatRuntimeEnvironment,
@@ -15,6 +16,7 @@ const deployConceroDexSwap: (hre: HardhatRuntimeEnvironment) => Promise<void> = 
   const networkType = conceroNetworks[name].type;
 
   const conceroProxyAddress = getEnvVar(`CONCERO_INFRA_PROXY_${networkEnvKeys[name]}`);
+  const { maxFeePerGas, maxPriorityFeePerGas } = await getGasParameters(conceroNetworks[name]);
 
   log("Deploying...", "DexSwap", name);
 
@@ -23,6 +25,8 @@ const deployConceroDexSwap: (hre: HardhatRuntimeEnvironment) => Promise<void> = 
     args: [conceroProxyAddress, messengers],
     log: true,
     autoMine: true,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
   })) as Deployment;
 
   if (live) {

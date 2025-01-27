@@ -6,7 +6,7 @@ try {
 		m +
 		'concero/contracts-v1/' +
 		'${CLF_JS_CODE_BRANCH}' +
-		`/tasks/CLFScripts/dist/pool/${f === '0x02' ? 'withdrawalLiquidityCollection' : f === '0x01' ? 'redistributePoolsLiquidity' : 'getChildPoolsLiquidity'}.min.js`;
+		`/tasks/CLFScripts/dist/pool/${f === '0x02' ? 'withdrawalLiquidityCollection' : f === '0x03' ? 'redistributePoolsLiquidity' : 'getChildPoolsLiquidity'}.min.js`;
 	const [t, p] = await Promise.all([fetch(u), fetch(q)]);
 	const [e, c] = await Promise.all([t.text(), p.text()]);
 	const g = async s => {

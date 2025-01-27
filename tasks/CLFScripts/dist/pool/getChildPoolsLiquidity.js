@@ -1,19 +1,37 @@
 (async () => {
 	const chainSelectors = {
-		['3478487238524512106']: {
-			urls: [`https://arbitrum-sepolia.infura.io/v3/${secrets.INFURA_API_KEY}`],
-			chainId: '0x66eee',
-			usdcAddress: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
-			poolAddress: '0x08b7325A4fF82F97803ff650A3288E036FB424ea',
+		['4949039107694359620']: {
+			urls: [`https://arbitrum-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa4b1',
+			usdcAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+			poolAddress: '0x164c20A4E11cBE0d8B5e23F5EE35675890BE280d',
 		},
-		['10344971235874465080']: {
-			urls: [`https://base-sepolia.g.alchemy.com/v2/${secrets.ALCHEMY_API_KEY}`],
-			chainId: '0x14a34',
-			usdcAddress: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-			poolAddress: '0xD5B19458Ddd36f75Cb8309B0e3bfB607Ccc04EB6',
+		['4051577828743386545']: {
+			urls: [`https://polygon-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0x89',
+			usdcAddress: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+			poolAddress: '0x164c20A4E11cBE0d8B5e23F5EE35675890BE280d',
+		},
+		['6433500567565415381']: {
+			urls: [`https://avalanche-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa86a',
+			usdcAddress: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+			poolAddress: '0x164c20A4E11cBE0d8B5e23F5EE35675890BE280d',
+		},
+		['15971525489660198786']: {
+			urls: [`https://base-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0x2105',
+			usdcAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+			poolAddress: '0x0AE1B2730066AD46481ab0a5fd2B5893f8aBa323',
+		},
+		['3734403246176062136']: {
+			urls: [`https://optimism-mainnet.infura.io/v3/${secrets.PARENT_POOL_INFURA_API_KEY}`],
+			chainId: '0xa',
+			usdcAddress: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+			poolAddress: '0x8698c6DF1E354Ce3ED0dE508EF7AF4baB85D2F2D',
 		},
 	};
-	const baseChainSelector = '10344971235874465080';
+	const baseChainSelector = '15971525489660198786';
 	const erc20Abi = ['function balanceOf(address) external view returns (uint256)'];
 	const poolAbi = [
 		'function s_loansInUse() external view returns (uint256)',

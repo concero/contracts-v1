@@ -34,7 +34,7 @@ contract Deposit is BaseTest {
                                  SETUP
     //////////////////////////////////////////////////////////////*/
     function setUp() public virtual override {
-        vm.selectFork(baseAnvilForkId);
+        vm.selectFork(baseForkId);
         deployParentPoolProxy();
         deployLpToken();
 

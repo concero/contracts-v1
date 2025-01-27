@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import fs from "fs";
+import * as envEnc from "@chainlink/env-enc";
 
 const ENV_FILES = [
   ".env",
@@ -21,6 +22,7 @@ function configureDotEnv(basePath = "./") {
   ENV_FILES.forEach(file => {
     dotenv.config({ path: `${normalizedBasePath}${file}` });
   });
+  envEnc.config({ path: process.env.PATH_TO_ENC_FILE });
 }
 configureDotEnv();
 

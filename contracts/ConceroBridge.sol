@@ -10,10 +10,9 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {InfraCCIP} from "./InfraCCIP.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
-import {IInfraStorage} from "./Interfaces/IInfraStorage.sol";
 
 /* ERRORS */
-///@notice error emitted when the input amount is less than the fees
+/// @notice error emitted when the input amount is less than the fees
 error InsufficientFees();
 
 contract ConceroBridge is IConceroBridge, InfraCCIP {
@@ -266,7 +265,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
 
     /**
      * @notice Function to calculate the proportional CCIP fee based on the amount
-     * @param ccipFeeInUsdc the total CCIP fee for a full batch (5000 USDC)
+     * @param ccipFeeInUsdc the total CCIP fee for a full batch
      * @param amount the amount of USDC being transferred
      */
     function _calculateProportionalCCIPFee(

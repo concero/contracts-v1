@@ -10,9 +10,8 @@ import {
 
 async function setConceroProxySender(hre) {
   const chain = conceroNetworks[hre.network.name];
-  const { name: chainName, viemChain, url, type } = chain;
-  const clients = getFallbackClients(chain);
-  const { publicClient, account, walletClient } = clients;
+  const { name: chainName, viemChain, type } = chain;
+  const { publicClient, account, walletClient } = getFallbackClients(chain);
   const { abi } = await import("../../../artifacts/contracts/ChildPool.sol/ChildPool.json");
   if (!chainName) throw new Error("Chain name not found");
   const chains = type === networkTypes.mainnet ? mainnetChains : testnetChains;
@@ -83,14 +82,15 @@ async function setConceroProxySender(hre) {
 async function addPoolsToAllChains(hre) {
   const chain = conceroNetworks[hre.network.name];
   const { name: chainName, viemChain, type } = chain;
-  const clients = getFallbackClients(chain);
-  const { publicClient, account, walletClient } = clients;
+  const { publicClient, account, walletClient } = getFallbackClients(chain);
   const { abi } = await import("../../../artifacts/contracts/ChildPool.sol/ChildPool.json");
   if (!chainName) throw new Error("Chain name not found");
   const chains = type === networkTypes.mainnet ? mainnetChains : testnetChains;
 
   for (const dstChain of chains) {
     if (dstChain.chainId === chain.chainId) continue;
+    // if (dstChain.chainId === conceroNetworks.base.chainId || dstChain.chainId === conceroNetworks.baseSepolia.chainId)
+    //   continue;
 
     const { name: dstChainName, chainSelector: dstChainSelector } = dstChain;
     const poolAddressToAdd =
@@ -119,14 +119,14 @@ async function addPoolsToAllChains(hre) {
         hash: setPoolHash,
       });
 
-      err(`Added pool ${poolAddressToAdd}. Gas used: ${setPoolGasUsed.toString()}`, "addPoolsToAllChains", chainName);
+      log(`Added pool ${poolAddressToAdd}. Gas used: ${setPoolGasUsed.toString()}`, "addPoolsToAllChains", chainName);
     } catch (error) {
       console.error(error);
     }
   }
 }
 
-export async function setChildProxyVariables(hre) {
-  await setConceroProxySender(hre);
+export async function setChildPoolProxyVariables(hre) {
+  // await setConceroProxySender(hre);
   await addPoolsToAllChains(hre);
 }

@@ -236,10 +236,9 @@ contract ChildPool is CCIPReceiver, ChildPoolStorage {
      * @notice function to manage the Cross-chains Concero contracts
      * @param _chainSelector chain identifications
      * @param _contractAddress address of the Cross-chains Concero contracts
-     * @param _isAllowed 1 == allowed | Any other value == not allowed
+     * @param _isAllowed bool to allow or disallow the contract to send ccip messages
      * @dev only owner can call it
      * @dev it's payable to save some gas.
-     * @dev this functions is used on ConceroPool.sol
      */
     function setConceroContractSender(
         uint64 _chainSelector,

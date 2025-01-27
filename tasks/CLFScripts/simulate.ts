@@ -76,7 +76,7 @@ task('clf-script-simulate', 'Executes the JavaScript source code locally')
 			case 'pool_collect_liq':
 				scriptPath = path.join(basePath, './pool/withdrawalLiquidityCollection.min.js');
 				break;
-			case 'pool_distribute_liq':
+			case 'pool_redistribute_liq':
 				scriptPath = path.join(basePath, './pool/redistributePoolsLiquidity.min.js');
 				break;
 			default:

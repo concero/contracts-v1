@@ -2,7 +2,6 @@
 pragma solidity ^0.8.22;
 
 import {IPool} from "./IPool.sol";
-import {ICCIP} from "./ICCIP.sol";
 
 interface IParentPool is IPool {
     /* TYPE DECLARATIONS */
@@ -115,8 +114,7 @@ interface IParentPool is IPool {
     function distributeLiquidity(
         uint64 _chainSelector,
         uint256 _amountToSend,
-        bytes32 distributeLiquidityRequestId,
-        ICCIP.CcipTxType _ccipTxType
+        bytes32 distributeLiquidityRequestId
     ) external;
 
     function setPools(
