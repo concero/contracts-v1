@@ -184,34 +184,26 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
      * @return The messenger fee in USDC
      */
     function getMessengerFeeInUsdc(uint64 dstChainSelector) public view returns (uint256) {
+        uint256 functionsFeeInUsdc = getFunctionsFeeInUsdc(dstChainSelector);
+
         uint256 messengerDstGasInNative = HALF_DST_GAS * s_lastGasPrices[dstChainSelector];
         uint256 messengerSrcGasInNative = HALF_DST_GAS * s_lastGasPrices[i_chainSelector];
         uint256 messengerGasFeeInUsdc = ((messengerDstGasInNative + messengerSrcGasInNative) *
             s_latestNativeUsdcRate) / STANDARD_TOKEN_DECIMALS;
-        return messengerGasFeeInUsdc;
+
+        return functionsFeeInUsdc + messengerGasFeeInUsdc;
     }
 
-    /**
-     * @notice Function to get the total amount of fees in USDC
-     * @param dstChainSelector the destination blockchain chain selector
-     * @param amount the amount to calculate the fees for
-     * @return clfFees the amount of Chainlink functions fees in USDC
-     * @return ccipFees the amount of CCIP fees in USDC
-     * @return conceroFees the amount of Concero fees in USDC
-     */
-    function getFees(
+    function getSrcFees(
         uint64 dstChainSelector,
         uint256 amount
-    ) public view returns (uint256 clfFees, uint256 ccipFees, uint256 conceroFees) {
-        uint256 functionsFeeInUsdc = getFunctionsFeeInUsdc(dstChainSelector);
-
-        uint256 messengerGasFeeInUsdc = getMessengerFeeInUsdc(dstChainSelector);
+    ) public view returns (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) {
+        conceroMsgFees = getMessengerFeeInUsdc(dstChainSelector);
 
         uint256 ccipFeeInUsdc = getCCIPFeeInUsdc(dstChainSelector);
-
-        clfFees = functionsFeeInUsdc + messengerGasFeeInUsdc;
         ccipFees = _calculateProportionalCCIPFee(ccipFeeInUsdc, amount);
-        conceroFees = amount / CONCERO_FEE_FACTOR;
+
+        lancaFees = amount / CONCERO_FEE_FACTOR;
     }
 
     function getSrcTotalFeeInUSDC(
@@ -264,12 +256,12 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
         uint64 dstChainSelector,
         uint256 amount
     ) internal view returns (uint256) {
-        (uint256 clfFees, uint256 ccipFees, uint256 conceroFees) = getFees(
+        (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) = getSrcFees(
             dstChainSelector,
             amount
         );
 
-        return (clfFees + ccipFees + conceroFees);
+        return (conceroMsgFees + ccipFees + lancaFees);
     }
 
     /**
