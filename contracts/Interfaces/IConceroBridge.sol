@@ -50,12 +50,12 @@ interface IConceroBridge is IInfraStorage {
      * @notice Function to get the total amount of fees in USDC
      * @param dstChainSelector the destination blockchain chain selector
      * @param amount the amount to calculate the fees for
-     * @return clfFees the amount of Chainlink functions fees in USDC
+     * @return conceroMsgFees the amount of Concero fees in USDC
      * @return ccipFees the amount of CCIP fees in USDC
-     * @return conceroFees the amount of Concero fees in USDC
+     * @return lancaFees the amount of Lanca fees in USDC
      */
-    function getFees(
+    function getSrcFees(
         uint64 dstChainSelector,
         uint256 amount
-    ) external view returns (uint256 clfFees, uint256 ccipFees, uint256 conceroFees);
+    ) external view returns (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees);
 }
