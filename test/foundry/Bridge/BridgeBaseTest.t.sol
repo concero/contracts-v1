@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {BaseTest, console} from "../utils/BaseTest.t.sol";
 import {InfraOrchestratorWrapper} from "./wrappers/InfraOrchestratorWrapper.sol";

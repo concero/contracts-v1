@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {console, Vm, Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -575,6 +575,7 @@ contract BaseTest is Test {
             [vm.envAddress("POOL_MESSENGER_0_ADDRESS"), address(0), address(0)]
         );
     }
+
     function _getBaseInfraImplementationConstructorArgs()
         internal
         returns (address, address, address, address, address, uint8, address[3] memory)

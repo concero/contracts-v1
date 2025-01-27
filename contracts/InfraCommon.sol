@@ -4,7 +4,7 @@
  * @notice If you discover any security vulnerabilities, please report them responsibly.
  * @contact email: security@concero.io
  */
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {USDC_ARBITRUM, USDC_BASE, USDC_OPTIMISM, USDC_POLYGON, USDC_POLYGON_AMOY, USDC_ARBITRUM_SEPOLIA, USDC_BASE_SEPOLIA, USDC_OPTIMISM_SEPOLIA, USDC_AVALANCHE} from "./Constants.sol";
 import {CHAIN_ID_AVALANCHE, WRAPPED_NATIVE_AVALANCHE, CHAIN_ID_ETHEREUM, WRAPPED_NATIVE_ETHEREUM, CHAIN_ID_ARBITRUM, WRAPPED_NATIVE_ARBITRUM, CHAIN_ID_BASE, WRAPPED_NATIVE_BASE, CHAIN_ID_POLYGON, WRAPPED_NATIVE_POLYGON} from "./Constants.sol";
@@ -30,6 +30,7 @@ contract InfraCommon {
         i_msgr1 = _messengers[1];
         i_msgr2 = _messengers[2];
     }
+
     /* MODIFIERS */
     /**
      * @notice modifier to check if the caller is the an approved messenger

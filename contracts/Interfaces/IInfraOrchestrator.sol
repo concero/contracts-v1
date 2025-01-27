@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {IInfraStorage} from "./IInfraStorage.sol";
 
@@ -13,6 +13,7 @@ interface IInfraOrchestrator {
     event IntegratorFeesWithdrawn(address indexed integrator, address token, uint256 amount);
 
     function isTxConfirmed(bytes32 _conceroMessageId) external view returns (bool);
+
     function confirmTx(bytes32 _conceroMessageId) external;
 }
 

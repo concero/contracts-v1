@@ -4,7 +4,7 @@
  * @notice If you discover any security vulnerabilities, please report them responsibly.
  * @contact email: security@concero.io
  */
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {AutomationCompatible} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
@@ -21,6 +21,7 @@ error WithdrawalAlreadyTriggered(bytes32 id);
 error WithdrawalRequestDoesntExist(bytes32 id);
 error WithdrawalRequestNotReady(bytes32 id);
 error WithdrawalAlreadyPerformed(bytes32 id);
+
 contract ParentPoolCLFCLA is
     IParentPoolCLFCLA,
     FunctionsClient,

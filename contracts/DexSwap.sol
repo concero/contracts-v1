@@ -4,7 +4,7 @@
  * @notice If you discover any security vulnerabilities, please report them responsibly.
  * @contact email: security@concero.io
  */
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -342,6 +342,7 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
 
         ISushiRouterV3(routerAddress).exactInput(params);
     }
+
     //
     //    /**
     //     * @notice Function to execute swaps on Aerodrome and Velodrome Protocols

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 interface IDexSwap {
     ///@notice Concero Enum to track DEXes

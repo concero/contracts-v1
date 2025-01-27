@@ -4,7 +4,7 @@
  * @notice If you discover any security vulnerabilities, please report them responsibly.
  * @contact email: security@concero.io
  */
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.22;
 
 import {InfraCommon} from "./InfraCommon.sol";
 import {IDexSwap} from "./Interfaces/IDexSwap.sol";

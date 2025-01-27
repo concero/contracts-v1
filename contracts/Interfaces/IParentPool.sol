@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {IPool} from "./IPool.sol";
 import {ICCIP} from "./ICCIP.sol";
@@ -109,13 +109,16 @@ interface IParentPool is IPool {
 
     /* FUNCTIONS */
     function getWithdrawalIdByLPAddress(address lpAddress) external view returns (bytes32);
+
     function startDeposit(uint256 _usdcAmount) external;
+
     function distributeLiquidity(
         uint64 _chainSelector,
         uint256 _amountToSend,
         bytes32 distributeLiquidityRequestId,
         ICCIP.CcipTxType _ccipTxType
     ) external;
+
     function setPools(
         uint64 _chainSelector,
         address _pool,

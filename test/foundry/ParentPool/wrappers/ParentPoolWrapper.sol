@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 import {ParentPool} from "contracts/ParentPool.sol";
 import {IParentPool} from "contracts/Interfaces/IParentPool.sol";
@@ -9,8 +9,11 @@ interface IParentPoolWrapper is IParentPool {
     function getDepositRequest(
         bytes32 requestId
     ) external view returns (ParentPool.DepositRequest memory);
+
     function getRequestType(bytes32 requestId) external view returns (ParentPool.CLFRequestType);
+
     function isMessenger(address _messenger) external view returns (bool);
+
     function getDepositsOnTheWayAmount() external view returns (uint256);
 }
 

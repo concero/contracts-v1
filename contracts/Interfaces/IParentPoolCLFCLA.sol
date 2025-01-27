@@ -5,7 +5,7 @@
  * @contact email: security@concero.io
  */
 
-pragma solidity 0.8.20;
+pragma solidity ^0.8.22;
 
 interface IParentPoolCLFCLA {
     event WithdrawalRequestInitiated(
@@ -13,6 +13,7 @@ interface IParentPoolCLFCLA {
         address caller,
         uint256 triggedAtTimestamp
     );
+
     function sendCLFRequest(bytes[] memory args) external returns (bytes32);
 
     function calculateWithdrawableAmount(
