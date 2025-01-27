@@ -179,6 +179,19 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
     }
 
     /**
+     * @notice Calculates the messenger fee in USDC for a given destination chain
+     * @param dstChainSelector The destination blockchain chain selector
+     * @return The messenger fee in USDC
+     */
+    function getMessengerFeeInUsdc(uint64 dstChainSelector) public view returns (uint256) {
+        uint256 messengerDstGasInNative = HALF_DST_GAS * s_lastGasPrices[dstChainSelector];
+        uint256 messengerSrcGasInNative = HALF_DST_GAS * s_lastGasPrices[i_chainSelector];
+        uint256 messengerGasFeeInUsdc = ((messengerDstGasInNative + messengerSrcGasInNative) *
+            s_latestNativeUsdcRate) / STANDARD_TOKEN_DECIMALS;
+        return messengerGasFeeInUsdc;
+    }
+
+    /**
      * @notice Function to get the total amount of fees in USDC
      * @param dstChainSelector the destination blockchain chain selector
      * @param amount the amount to calculate the fees for
@@ -191,10 +204,8 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
         uint256 amount
     ) public view returns (uint256 clfFees, uint256 ccipFees, uint256 conceroFees) {
         uint256 functionsFeeInUsdc = getFunctionsFeeInUsdc(dstChainSelector);
-        uint256 messengerDstGasInNative = HALF_DST_GAS * s_lastGasPrices[dstChainSelector];
-        uint256 messengerSrcGasInNative = HALF_DST_GAS * s_lastGasPrices[i_chainSelector];
-        uint256 messengerGasFeeInUsdc = ((messengerDstGasInNative + messengerSrcGasInNative) *
-            s_latestNativeUsdcRate) / STANDARD_TOKEN_DECIMALS;
+
+        uint256 messengerGasFeeInUsdc = getMessengerFeeInUsdc(dstChainSelector);
 
         uint256 ccipFeeInUsdc = getCCIPFeeInUsdc(dstChainSelector);
 
