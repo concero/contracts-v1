@@ -54,7 +54,7 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
     /* CONSTANT VARIABLES */
     //TODO: move testnet-mainnet-dependent variables to immutables
-    uint256 internal constant MIN_DEPOSIT = 100 * USDC_DECIMALS;
+    uint256 internal constant MIN_DEPOSIT = 250 * USDC_DECIMALS;
     uint256 internal constant DEPOSIT_DEADLINE_SECONDS = 60;
     uint256 internal constant DEPOSIT_FEE_USDC = 3 * USDC_DECIMALS;
     uint256 internal constant LP_FEE_FACTOR = 1000;
