@@ -154,7 +154,7 @@ numAllowedQueries: 2 – a minimum to initialise Viem.
 			},
 		},
 		[`0x${BigInt('${CL_CCIP_CHAIN_SELECTOR_OPTIMISM}').toString(16)}`]: {
-			urls: ['https://optimism-rpc.publicnode.com', 'https://rpc.ankr.com/optimism', 'https://optimism.drpc.org'],
+			urls: ['https://optimism-rpc.publicnode.com', 'https://rpc.ankr.com/optimism'],
 			chainId: '0xa',
 			nativeCurrency: 'eth',
 			priceFeed: {
