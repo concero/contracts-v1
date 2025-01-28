@@ -110,6 +110,16 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
     /* EXTERNAL FUNCTIONS */
     receive() external payable {}
 
+    function isFull() public view returns (bool) {
+        return
+            MIN_DEPOSIT +
+                i_USDC.balanceOf(address(this)) -
+                s_depositFeeAmount +
+                s_loansInUse -
+                s_withdrawAmountLocked >
+            s_liquidityCap;
+    }
+
     function getWithdrawalIdByLPAddress(address _lpAddress) external view returns (bytes32) {
         return s_withdrawalIdByLPAddress[_lpAddress];
     }
