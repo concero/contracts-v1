@@ -142,7 +142,7 @@
 			},
 		},
 		[`0x${BigInt('3734403246176062136').toString(16)}`]: {
-			urls: ['https://optimism-rpc.publicnode.com', 'https://rpc.ankr.com/optimism', 'https://optimism.drpc.org'],
+			urls: ['https://optimism-rpc.publicnode.com', 'https://rpc.ankr.com/optimism'],
 			chainId: '0xa',
 			nativeCurrency: 'eth',
 			priceFeed: {
