@@ -226,6 +226,8 @@ contract ParentPoolCLFCLA is
             liquidityRequestedFromEachPool
         );
 
+        s_clfRequestTypes[reqId] = IParentPool.CLFRequestType.withdrawal_requestLiquidityCollection;
+
         emit RetryWithdrawalPerformed(reqId);
     }
 
