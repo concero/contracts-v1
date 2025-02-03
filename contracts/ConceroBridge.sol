@@ -63,9 +63,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
         bytes calldata compressedDstSwapData
     ) external payable {
         address fromToken = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
-        uint256 totalSrcFee = _convertToUSDCDecimals(
-            _getSrcTotalFeeInUsdc(bridgeData.dstChainSelector, bridgeData.amount)
-        );
+        uint256 totalSrcFee = _getSrcTotalFeeInUsdc(bridgeData.dstChainSelector, bridgeData.amount);
 
         if (bridgeData.amount <= totalSrcFee) {
             revert InsufficientFees();
@@ -163,9 +161,9 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
      * @param dstChainSelector the destination blockchain chain selector
      */
     function getFunctionsFeeInUsdc(uint64 dstChainSelector) public view returns (uint256) {
-        //    uint256 functionsFeeInLink = getFunctionsFeeInLink(dstChainSelector);
-        //    return (functionsFeeInLink * s_latestLinkUsdcRate) / STANDARD_TOKEN_DECIMALS;
-        return clfPremiumFees[dstChainSelector] + clfPremiumFees[i_chainSelector];
+        uint256 totalFeeInLink = clfPremiumFees[dstChainSelector] + clfPremiumFees[i_chainSelector];
+        uint256 diff = STANDARD_TOKEN_DECIMALS / USDC_DECIMALS;
+        return (totalFeeInLink * s_latestLinkUsdcRate) / STANDARD_TOKEN_DECIMALS / diff;
     }
 
     /**
@@ -174,7 +172,8 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
      */
     function getCCIPFeeInUsdc(uint64 _dstChainSelector) public view returns (uint256) {
         uint256 ccipFeeInLink = s_lastCCIPFeeInLink[_dstChainSelector];
-        return (ccipFeeInLink * uint256(s_latestLinkUsdcRate)) / STANDARD_TOKEN_DECIMALS;
+        uint256 diff = STANDARD_TOKEN_DECIMALS / USDC_DECIMALS;
+        return (ccipFeeInLink * uint256(s_latestLinkUsdcRate)) / STANDARD_TOKEN_DECIMALS / diff;
     }
 
     /**
