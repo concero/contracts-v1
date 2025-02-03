@@ -105,12 +105,13 @@ contract InfraCommon {
     }
 
     /* INTERNAL FUNCTIONS */
+
     /**
-     * @notice Internal function to convert USDC Decimals to LP Decimals
-     * @param amount the amount of USDC
-     * @return adjustedAmount the adjusted amount
+     * @notice Converts an amount from the standard 18 decimals to USDC's 6 decimals
+     * @param amount The amount to convert
+     * @return The converted amount
      */
     function _convertToUSDCDecimals(uint256 amount) internal pure returns (uint256) {
-        return (amount * USDC_DECIMALS) / STANDARD_TOKEN_DECIMALS;
+        return (amount * USDC_DECIMALS + STANDARD_TOKEN_DECIMALS / 2) / STANDARD_TOKEN_DECIMALS;
     }
 }
