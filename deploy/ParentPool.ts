@@ -51,7 +51,6 @@ const deployParentPool: (hre: HardhatRuntimeEnvironment, constructorArgs?: Const
     log("Deploying...", `deployParentPool, ${deployer}`, name);
 
     const { publicClient: viemPublicClient } = getFallbackClients(conceroNetworks[name]);
-    const gasPrice = await viemPublicClient.getGasPrice();
 
     const deployParentPool = (await deploy("ParentPool", {
       from: deployer,

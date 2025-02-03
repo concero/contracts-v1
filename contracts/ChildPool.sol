@@ -227,8 +227,8 @@ contract ChildPool is CCIPReceiver, ChildPoolStorage {
         if (msg.sender != i_infraProxy) revert NotConceroInfraProxy();
         if (_receiver == address(0)) revert InvalidAddress();
         if (_token != address(i_USDC)) revert NotUsdcToken();
-        IERC20(_token).safeTransfer(_receiver, _amount);
         s_loansInUse += _amount;
+        IERC20(_token).safeTransfer(_receiver, _amount);
     }
 
     /* SETTER FUNCTIONS */

@@ -54,7 +54,7 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
     /* CONSTANT VARIABLES */
     //TODO: move testnet-mainnet-dependent variables to immutables
-    uint256 internal constant MIN_DEPOSIT = 100 * USDC_DECIMALS;
+    uint256 internal constant MIN_DEPOSIT = 250 * USDC_DECIMALS;
     uint256 internal constant DEPOSIT_DEADLINE_SECONDS = 60;
     uint256 internal constant DEPOSIT_FEE_USDC = 3 * USDC_DECIMALS;
     uint256 internal constant LP_FEE_FACTOR = 1000;
@@ -109,6 +109,16 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
     /* EXTERNAL FUNCTIONS */
     receive() external payable {}
+
+    function isFull() public view returns (bool) {
+        return
+            MIN_DEPOSIT +
+                i_USDC.balanceOf(address(this)) -
+                s_depositFeeAmount +
+                s_loansInUse -
+                s_withdrawAmountLocked >
+            s_liquidityCap;
+    }
 
     function getWithdrawalIdByLPAddress(address _lpAddress) external view returns (bytes32) {
         return s_withdrawalIdByLPAddress[_lpAddress];
@@ -242,10 +252,9 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
     ) external payable onlyProxyContext {
         if (msg.sender != i_infraProxy) revert NotConceroInfraProxy();
         if (_receiver == address(0)) revert InvalidAddress();
-        //todo: enforce receiver to be i_infraProxy
         if (_token != address(i_USDC)) revert NotUsdcToken();
-        IERC20(_token).safeTransfer(_receiver, _amount);
         s_loansInUse += _amount;
+        IERC20(_token).safeTransfer(_receiver, _amount);
     }
 
     /**
@@ -688,9 +697,7 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
         WithdrawRequest storage request = s_withdrawRequests[withdrawalId];
         uint256 amountToWithdraw = request.amountToWithdraw;
         address lpAddress = request.lpAddress;
-
-        i_lpToken.burn(request.lpAmountToBurn);
-        i_USDC.safeTransfer(lpAddress, amountToWithdraw);
+        uint256 lpAmountToBurn = request.lpAmountToBurn;
 
         s_withdrawAmountLocked = s_withdrawAmountLocked > amountToWithdraw
             ? s_withdrawAmountLocked - amountToWithdraw
@@ -698,6 +705,9 @@ contract ParentPool is IParentPool, CCIPReceiver, ParentPoolCommon, ParentPoolSt
 
         delete s_withdrawalIdByLPAddress[lpAddress];
         delete s_withdrawRequests[withdrawalId];
+
+        i_lpToken.burn(lpAmountToBurn);
+        i_USDC.safeTransfer(lpAddress, amountToWithdraw);
 
         emit WithdrawalCompleted(withdrawalId, lpAddress, address(i_USDC), amountToWithdraw);
     }

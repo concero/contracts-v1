@@ -5,6 +5,7 @@ export const clfFees: Record<CNetworkNames, bigint> = {
   arbitrum: 75000000000000000n,
   base: 60000000000000000n,
   avalanche: 280000000000000000n,
+  optimism: 90000000000000000n,
 
   // testnets
 

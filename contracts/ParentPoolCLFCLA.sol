@@ -4,7 +4,7 @@
  * @notice If you discover any security vulnerabilities, please report them responsibly.
  * @contact email: security@concero.io
  */
-pragma solidity ^0.8.22;
+pragma solidity 0.8.20;
 
 import {AutomationCompatible} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
@@ -21,6 +21,7 @@ error WithdrawalAlreadyTriggered(bytes32 id);
 error WithdrawalRequestDoesntExist(bytes32 id);
 error WithdrawalRequestNotReady(bytes32 id);
 error WithdrawalAlreadyPerformed(bytes32 id);
+error InvalidCLFRequestType();
 
 contract ParentPoolCLFCLA is
     IParentPoolCLFCLA,
@@ -36,7 +37,7 @@ contract ParentPoolCLFCLA is
     uint256 internal constant CCIP_ESTIMATED_TIME_TO_COMPLETE = 30 minutes;
     uint32 internal constant CLF_CALLBACK_GAS_LIMIT = 2_000_000;
     string internal constant JS_CODE =
-        "try{const [b,o,f]=bytesArgs;const m='https://raw.githubusercontent.com/';const u=m+'ethers-io/ethers.js/v6.10.0/dist/ethers.umd.min.js';const q=m+'concero/contracts-v1/'+'release'+`/tasks/CLFScripts/dist/pool/${f==='0x02' ? 'withdrawalLiquidityCollection':f==='0x03' ? 'redistributePoolsLiquidity':'getChildPoolsLiquidity'}.min.js`;const [t,p]=await Promise.all([fetch(u),fetch(q)]);const [e,c]=await Promise.all([t.text(),p.text()]);const g=async s=>{return('0x'+Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(v=>('0'+v.toString(16)).slice(-2).toLowerCase()).join(''));};const r=await g(c);const x=await g(e);if(r===b.toLowerCase()&& x===o.toLowerCase()){const ethers=new Function(e+';return ethers;')();return await eval(c);}throw new Error(`${r}!=${b}||${x}!=${o}`);}catch(e){throw new Error(e.message.slice(0,255));}";
+        "try{const [b,o,f]=bytesArgs;const m='https://raw.githubusercontent.com/';const u=m+'ethers-io/ethers.js/v6.10.0/dist/ethers.umd.min.js';const q=m+'concero/contracts-v1/'+'release'+`/tasks/CLFScripts/dist/pool/${f==='0x03' ? 'withdrawalLiquidityCollection':f==='0x04' ? 'redistributePoolsLiquidity':'getChildPoolsLiquidity'}.min.js`;const [t,p]=await Promise.all([fetch(u),fetch(q)]);const [e,c]=await Promise.all([t.text(),p.text()]);const g=async s=>{return('0x'+Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(v=>('0'+v.toString(16)).slice(-2).toLowerCase()).join(''));};const r=await g(c);const x=await g(e);if(r===b.toLowerCase()&& x===o.toLowerCase()){const ethers=new Function(e+';return ethers;')();return await eval(c);}throw new Error(`${r}!=${b}||${x}!=${o}`);}catch(e){throw new Error(e.message.slice(0,255));}";
 
     /* IMMUTABLE VARIABLES */
     bytes32 private immutable i_clfDonId;
@@ -81,6 +82,12 @@ contract ParentPoolCLFCLA is
     ) internal override {
         IParentPool.CLFRequestType requestType = s_clfRequestTypes[requestId];
 
+        if (requestType == IParentPool.CLFRequestType.empty) {
+            revert InvalidCLFRequestType();
+        }
+
+        delete s_clfRequestTypes[requestId];
+
         if (err.length > 0) {
             if (requestType == IParentPool.CLFRequestType.startDeposit_getChildPoolsLiquidity) {
                 delete s_depositRequests[requestId];
@@ -91,11 +98,11 @@ contract ParentPoolCLFCLA is
                 address lpAddress = s_withdrawRequests[withdrawalId].lpAddress;
                 uint256 lpAmountToBurn = s_withdrawRequests[withdrawalId].lpAmountToBurn;
 
-                IERC20(i_lpToken).safeTransfer(lpAddress, lpAmountToBurn);
-
                 delete s_withdrawRequests[withdrawalId];
                 delete s_withdrawalIdByLPAddress[lpAddress];
                 delete s_withdrawalIdByCLFRequestId[requestId];
+
+                IERC20(i_lpToken).safeTransfer(lpAddress, lpAmountToBurn);
             }
 
             emit CLFRequestError(requestId, requestType, err);
@@ -111,10 +118,10 @@ contract ParentPoolCLFCLA is
                 requestType == IParentPool.CLFRequestType.withdrawal_requestLiquidityCollection
             ) {
                 _handleAutomationCLFFulfill(requestId);
+            } else {
+                revert InvalidCLFRequestType();
             }
         }
-
-        delete s_clfRequestTypes[requestId];
     }
 
     function sendCLFRequest(bytes[] memory args) external onlyProxyContext returns (bytes32) {
@@ -218,6 +225,8 @@ contract ParentPoolCLFCLA is
             withdrawalId,
             liquidityRequestedFromEachPool
         );
+
+        s_clfRequestTypes[reqId] = IParentPool.CLFRequestType.withdrawal_requestLiquidityCollection;
 
         emit RetryWithdrawalPerformed(reqId);
     }

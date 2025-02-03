@@ -32,6 +32,7 @@ export const urls: Record<string, string[]> = {
     "https://rpc.ankr.com/eth_sepolia",
   ],
   avalanche: [
+    "https://avalanche-c-chain-rpc.publicnode.com",
     `https://lb.drpc.org/ogrpc?network=avalanche&dkey=${DRPC_API_KEY}`,
     `https://ava-mainnet.blastapi.io/${BLAST_API_KEY}ext/bc/C/rpc`,
     "https://rpc.ankr.com/avalanche",
@@ -43,7 +44,7 @@ export const urls: Record<string, string[]> = {
     `https://avalanche-fuji.core.chainstack.com/ext/bc/C/rpc/${CHAINSTACK_API_KEY}`,
     `https://ava-testnet.blastapi.io/${BLAST_API_KEY}ext/bc/C/rpc`,
   ],
-  arbitrum: ["https://rpc.ankr.com/arbitrum", "https://arbitrum-one-rpc.publicnode.com"],
+  arbitrum: ["https://arbitrum-one-rpc.publicnode.com", "https://rpc.ankr.com/arbitrum"],
   arbitrumSepolia: [
     `https://lb.drpc.org/ogrpc?network=arbitrum-sepolia&dkey=${DRPC_API_KEY}`,
     `https://arbitrum-sepolia.infura.io/v3/${INFURA_API_KEY}`,
@@ -51,6 +52,7 @@ export const urls: Record<string, string[]> = {
     "https://rpc.ankr.com/arbitrum_sepolia",
   ],
   optimism: [
+    "https://optimism-rpc.publicnode.com",
     `https://optimism-mainnet.infura.io/v3/${INFURA_API_KEY}`,
     `https://lb.drpc.org/ogrpc?network=optimism&dkey=${DRPC_API_KEY}`,
     "https://optimism.llamarpc.com",
@@ -79,9 +81,9 @@ export const urls: Record<string, string[]> = {
   base: [
     // `https://lb.drpc.org/ogrpc?network=base&dkey=${DRPC_API_KEY}`,
     // "https://base.llamarpc.com",
+    `https://base-rpc.publicnode.com`,
     "https://base.blockpi.network/v1/rpc/public",
     `https://base-mainnet.infura.io/v3/${INFURA_API_KEY}`,
-    `https://base-rpc.publicnode.com`,
     "https://rpc.ankr.com/base",
     `https://base-mainnet.blastapi.io/${BLAST_API_KEY}`,
   ],

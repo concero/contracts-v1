@@ -62,7 +62,7 @@ async function setParentPoolCap(chain: CNetwork, abi: any) {
   try {
     const { walletClient, publicClient, account } = getFallbackClients(chain);
     const [parentPoolProxy, parentPoolProxyAlias] = getEnvAddress(ProxyEnum.parentPoolProxy, name);
-    const poolCap = 100_000n * 10n ** 6n;
+    const poolCap = 60_000n * 10n ** 6n;
 
     const { request: setCapReq } = await publicClient.simulateContract({
       address: parentPoolProxy,
