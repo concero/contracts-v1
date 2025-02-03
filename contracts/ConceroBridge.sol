@@ -193,7 +193,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
         return functionsFeeInUsdc + messengerGasFeeInUsdc;
     }
 
-    function getSrcFees(
+    function getSrcBridgeFeeBreakdown(
         uint64 dstChainSelector,
         uint256 amount
     ) public view returns (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) {
@@ -255,7 +255,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
         uint64 dstChainSelector,
         uint256 amount
     ) internal view returns (uint256) {
-        (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) = getSrcFees(
+        (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) = getSrcBridgeFeeBreakdown(
             dstChainSelector,
             amount
         );

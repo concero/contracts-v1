@@ -120,19 +120,19 @@ contract InfraOrchestrator is
     }
 
     /**
-     * @notice Function to get the total amount of fees in USDC
+     * @notice Function to get the fees breakdown for a bridge from the source chain to the destination chain
      * @param dstChainSelector the destination blockchain chain selector
      * @param amount the amount to calculate the fees for
      * @return conceroMsgFees the amount of Concero fees in USDC
      * @return ccipFees the amount of CCIP fees in USDC
      * @return lancaFees the amount of Lanca fees in USDC
      */
-    function getSrcFees(
+    function getSrcBridgeFeesBreakdownInUsdc(
         uint64 dstChainSelector,
         uint256 amount
     ) external returns (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) {
         bytes memory delegateCallArgs = abi.encodeWithSelector(
-            IConceroBridge.getSrcFees.selector,
+            IConceroBridge.getSrcBridgeFeeBreakdown.selector,
             dstChainSelector,
             amount
         );

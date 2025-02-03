@@ -54,7 +54,7 @@ interface IConceroBridge is IInfraStorage {
      * @return ccipFees the amount of CCIP fees in USDC
      * @return lancaFees the amount of Lanca fees in USDC
      */
-    function getSrcFees(
+    function getSrcBridgeFeeBreakdown(
         uint64 dstChainSelector,
         uint256 amount
     ) external view returns (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees);
