@@ -142,7 +142,16 @@ contract InfraOrchestrator is
             delegateCallArgs
         );
 
-        return abi.decode(delegateCallRes, (uint256, uint256, uint256));
+        (conceroMsgFees, ccipFees, lancaFees) = abi.decode(
+            delegateCallRes,
+            (uint256, uint256, uint256)
+        );
+
+        return (
+            _convertToUSDCDecimals(conceroMsgFees),
+            _convertToUSDCDecimals(ccipFees),
+            _convertToUSDCDecimals(lancaFees)
+        );
     }
 
     /**
