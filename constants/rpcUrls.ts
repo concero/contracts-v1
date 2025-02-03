@@ -66,12 +66,12 @@ export const urls: Record<string, string[]> = {
     "https://rpc.ankr.com/optimism_sepolia",
   ],
   polygon: [
+    `https://polygon-mainnet.infura.io/v3/${INFURA_API_KEY}`,
     "https://polygon-bor-rpc.publicnode.com",
     `https://lb.drpc.org/ogrpc?network=polygon&dkey=${DRPC_API_KEY}`,
     `https://polygon-mainnet.blastapi.io/${BLAST_API_KEY}`,
     "https://rpc.ankr.com/polygon",
     `https://polygon.gateway.tenderly.co/${TENDERLY_API_KEY}`,
-    `https://polygon-mainnet.infura.io/v3/${INFURA_API_KEY}`,
   ],
   polygonAmoy: [
     `https://lb.drpc.org/ogrpc?network=polygon-amoy&dkey=${DRPC_API_KEY}`,
