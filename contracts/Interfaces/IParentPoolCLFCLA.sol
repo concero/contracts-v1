@@ -5,7 +5,7 @@
  * @contact email: security@concero.io
  */
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.20;
 
 interface IParentPoolCLFCLA {
     event WithdrawalRequestInitiated(

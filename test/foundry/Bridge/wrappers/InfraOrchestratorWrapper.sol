@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.20;
 
 import {IInfraStorage} from "contracts/Interfaces/IInfraStorage.sol";
 import {IDexSwap} from "contracts/Interfaces/IDexSwap.sol";
