@@ -46,6 +46,10 @@ contract DeployInfraScript is DeployHelper {
         return address(infraProxy);
     }
 
+    function getConceroBridge() public view returns (address) {
+        return address(conceroBridge);
+    }
+
     function _deployFullInfra() internal {
         _deployInfraProxy();
         _deployAndSetImplementation();
