@@ -49,8 +49,6 @@ contract BridgeTestFees is Test {
     }
 
     function _setFees(uint64 chainSelector) internal {
-        vm.prank(deployer);
-
         //take from our prod contracts
         conceroBridge.setClfPremiumFees(chainSelector, 60000000000000000);
         conceroBridge.setLastGasPrices(chainSelector, 4611549);
