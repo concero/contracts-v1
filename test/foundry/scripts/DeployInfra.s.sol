@@ -11,12 +11,14 @@ import {TransparentUpgradeableProxy, ITransparentUpgradeableProxy} from "contrac
 import {console} from "forge-std/src/console.sol";
 import {IInfraStorage} from "contracts/Interfaces/IInfraStorage.sol";
 import {InfraStorageSetters} from "contracts/Libraries/InfraStorageSetters.sol";
+import {ConceroBridgeMock} from "test/foundry/Mocks/ConceroBridgeMock.sol";
 
 contract DeployInfraScript is DeployHelper {
     // @notice contract addresses
     TransparentUpgradeableProxy internal infraProxy;
     InfraOrchestrator internal infraOrchestrator;
-    ConceroBridge internal conceroBridge;
+    //ConceroBridge internal conceroBridge;
+    ConceroBridgeMock public conceroBridgeMock;
     DexSwap internal dexSwap;
 
     // @notice helper variables
@@ -46,9 +48,9 @@ contract DeployInfraScript is DeployHelper {
         return address(infraProxy);
     }
 
-    function getConceroBridge() public view returns (address) {
-        return address(conceroBridge);
-    }
+    // function getConceroBridge() public view returns (address) {
+    //     return address(conceroBridge);
+    // }
 
     function _deployFullInfra() internal {
         _deployInfraProxy();
@@ -75,7 +77,7 @@ contract DeployInfraScript is DeployHelper {
     }
 
     function _deployConceroBridge() internal {
-        vm.prank(deployer);
+        vm.startPrank(deployer);
 
         IInfraStorage.FunctionsVariables memory clfVars = IInfraStorage.FunctionsVariables({
             subscriptionId: getCLfSubId(),
@@ -83,7 +85,19 @@ contract DeployInfraScript is DeployHelper {
             functionsRouter: getClfRouter()
         });
 
-        conceroBridge = new ConceroBridge(
+        // conceroBridge = new ConceroBridge(
+        //     clfVars,
+        //     getChainSelector(),
+        //     getChainIndex(),
+        //     getLinkAddress(),
+        //     getCcipRouter(),
+        //     address(dexSwap),
+        //     address(0),
+        //     address(infraProxy),
+        //     messengers
+        // );
+
+        conceroBridgeMock = new ConceroBridgeMock(
             clfVars,
             getChainSelector(),
             getChainIndex(),
@@ -94,6 +108,8 @@ contract DeployInfraScript is DeployHelper {
             address(infraProxy),
             messengers
         );
+
+        vm.stopPrank();
     }
 
     function _deployOrchestrator() internal {
@@ -101,7 +117,7 @@ contract DeployInfraScript is DeployHelper {
         infraOrchestrator = new InfraOrchestrator(
             getClfRouter(),
             address(dexSwap),
-            address(conceroBridge),
+            address(conceroBridgeMock),
             address(0),
             address(infraProxy),
             getChainIndex(),
