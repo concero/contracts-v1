@@ -186,8 +186,11 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
 
         uint256 messengerDstGasInNative = HALF_DST_GAS * s_lastGasPrices[dstChainSelector];
         uint256 messengerSrcGasInNative = HALF_DST_GAS * s_lastGasPrices[i_chainSelector];
+        uint256 diff = STANDARD_TOKEN_DECIMALS / USDC_DECIMALS;
         uint256 messengerGasFeeInUsdc = ((messengerDstGasInNative + messengerSrcGasInNative) *
-            s_latestNativeUsdcRate) / STANDARD_TOKEN_DECIMALS;
+            s_latestNativeUsdcRate) /
+            STANDARD_TOKEN_DECIMALS /
+            diff;
 
         return functionsFeeInUsdc + messengerGasFeeInUsdc;
     }
