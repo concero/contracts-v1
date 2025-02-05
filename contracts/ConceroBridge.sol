@@ -162,8 +162,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
      */
     function getFunctionsFeeInUsdc(uint64 dstChainSelector) public view returns (uint256) {
         uint256 totalFeeInLink = clfPremiumFees[dstChainSelector] + clfPremiumFees[i_chainSelector];
-        uint256 diff = STANDARD_TOKEN_DECIMALS / USDC_DECIMALS;
-        return (totalFeeInLink * s_latestLinkUsdcRate) / STANDARD_TOKEN_DECIMALS / diff;
+        return _convertToUSDCTokenDecimals(totalFeeInLink);
     }
 
     /**
@@ -172,8 +171,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
      */
     function getCCIPFeeInUsdc(uint64 _dstChainSelector) public view returns (uint256) {
         uint256 ccipFeeInLink = s_lastCCIPFeeInLink[_dstChainSelector];
-        uint256 diff = STANDARD_TOKEN_DECIMALS / USDC_DECIMALS;
-        return (ccipFeeInLink * uint256(s_latestLinkUsdcRate)) / STANDARD_TOKEN_DECIMALS / diff;
+        return _convertToUSDCTokenDecimals(ccipFeeInLink);
     }
 
     /**
@@ -183,15 +181,13 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
      */
     function getMessengerFeeInUsdc(uint64 dstChainSelector) public view returns (uint256) {
         uint256 functionsFeeInUsdc = getFunctionsFeeInUsdc(dstChainSelector);
-
         uint256 messengerDstGasInNative = HALF_DST_GAS * s_lastGasPrices[dstChainSelector];
         uint256 messengerSrcGasInNative = HALF_DST_GAS * s_lastGasPrices[i_chainSelector];
-        uint256 diff = STANDARD_TOKEN_DECIMALS / USDC_DECIMALS;
-        uint256 messengerGasFeeInUsdc = ((messengerDstGasInNative + messengerSrcGasInNative) *
-            s_latestNativeUsdcRate) /
-            STANDARD_TOKEN_DECIMALS /
-            diff;
 
+        uint256 messengerGasFeeInUsdc = _convertToUSDCDecimals(
+            ((messengerDstGasInNative + messengerSrcGasInNative) * s_latestNativeUsdcRate) /
+                STANDARD_TOKEN_DECIMALS
+        );
         return functionsFeeInUsdc + messengerGasFeeInUsdc;
     }
 
@@ -204,7 +200,7 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
         uint256 ccipFeeInUsdc = getCCIPFeeInUsdc(dstChainSelector);
         ccipFees = _calculateProportionalCCIPFee(ccipFeeInUsdc, amount);
 
-        lancaFees = amount / CONCERO_FEE_FACTOR;
+        lancaFees = amount / uint256(CONCERO_FEE_FACTOR);
     }
 
     function getSrcTotalFeeInUSDC(
@@ -276,5 +272,9 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
     ) internal pure returns (uint256) {
         if (amount >= BATCHED_TX_THRESHOLD) return ccipFeeInUsdc;
         return (ccipFeeInUsdc * amount) / BATCHED_TX_THRESHOLD;
+    }
+
+    function _convertToUSDCTokenDecimals(uint256 amount) internal pure returns (uint256) {
+        return (amount * USDC_DECIMALS) / STANDARD_TOKEN_DECIMALS;
     }
 }
