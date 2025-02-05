@@ -5,9 +5,9 @@ pragma solidity 0.8.20;
 import {Test, console} from "forge-std/src/Test.sol";
 import {ConceroBridgeMock} from "test/foundry/Mocks/ConceroBridgeMock.sol";
 import {IInfraStorage} from "contracts/Interfaces/IInfraStorage.sol";
-import {CHAIN_SELECTOR_BASE} from "contracts/Constants.sol";
+import {CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_POLYGON} from "contracts/Constants.sol";
 import {IInfraOrchestrator} from "contracts/Interfaces/IInfraOrchestrator.sol";
-import {InfraOrchestrator} from "contracts/InfraOrchestrator.sol";
+import {InfraOrchestratorMock} from "../Mocks/InfraOrchestratorMock.sol";
 import {DeployInfraScript} from "../scripts/DeployInfra.s.sol";
 
 contract BridgeTestFees is Test {
@@ -15,14 +15,15 @@ contract BridgeTestFees is Test {
 
     address public deployer = vm.envAddress("DEPLOYER_ADDRESS");
 
-    InfraOrchestrator internal infraProxy;
+    InfraOrchestratorMock internal infraProxy;
     ConceroBridgeMock internal conceroBridge;
 
     modifier selectForkAndUpdateInfraProxy(uint256 forkId) {
         DeployInfraScript deployInfraScript = new DeployInfraScript();
-        infraProxy = InfraOrchestrator(payable(deployInfraScript.run(forkId)));
+        infraProxy = InfraOrchestratorMock(payable(deployInfraScript.run(forkId)));
         conceroBridge = deployInfraScript.conceroBridgeMock();
 
+        _setFees(CHAIN_SELECTOR_POLYGON);
         _setFees(CHAIN_SELECTOR_BASE);
         _;
     }
@@ -31,11 +32,15 @@ contract BridgeTestFees is Test {
         public
         selectForkAndUpdateInfraProxy(vm.createFork(vm.envString("BASE_RPC_URL"), 23814899))
     {
-        uint256 amount = 1 * USDC_DECIMALS;
-        uint256 oldFees = conceroBridge.getSrcTotalFeeInUSDC(CHAIN_SELECTOR_BASE, amount);
+        uint256 amount = 10 * USDC_DECIMALS;
+        uint256 oldFees = infraProxy.getSrcTotalFeeInUSDC(
+            IInfraStorage.CCIPToken.usdc,
+            CHAIN_SELECTOR_BASE,
+            amount
+        );
 
-        (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) = conceroBridge
-            .getSrcBridgeFeeBreakdown(CHAIN_SELECTOR_BASE, amount);
+        (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees) = infraProxy
+            .getSrcBridgeFeesBreakdownInUsdc(CHAIN_SELECTOR_BASE, amount);
 
         uint256 newFees = conceroMsgFees + ccipFees + lancaFees;
         console.log("conceroMsgFees: ", conceroMsgFees);
@@ -46,16 +51,19 @@ contract BridgeTestFees is Test {
 
         console.log("oldFees: ", oldFees);
         console.log("newFees: ", newFees);
+
+        //console.log("getFunctionsFeeInUsdc", infraProxy.getFunctionsFeeInUsdc(CHAIN_SELECTOR_BASE));
     }
 
     function _setFees(uint64 chainSelector) internal {
+        vm.startPrank(deployer);
         //take from our prod contracts
-        conceroBridge.setClfPremiumFees(chainSelector, 60000000000000000);
-        conceroBridge.setLastGasPrices(chainSelector, 4611549);
+        infraProxy.setClfPremiumFees(chainSelector, 60000000000000000);
+        infraProxy.setLastGasPrices(chainSelector, 3480453);
 
-        conceroBridge.setLatestNativeUsdcRate(2728871825713640747152);
-        conceroBridge.setLatestLinkNativeRate(7395102713198155);
-        conceroBridge.setLatestLinkUsdcRate(20118014974020273024);
-        conceroBridge.setLastCCIPFeeInLink(chainSelector, 0.0108225e18);
+        infraProxy.setLatestNativeUsdcRate(2804643383934286463621);
+        infraProxy.setLatestLinkNativeRate(7132975434900616);
+        infraProxy.setLatestLinkUsdcRate(20091009336321398309);
+        infraProxy.setLastCCIPFeeInLink(chainSelector, 12289774848343018);
     }
 }
