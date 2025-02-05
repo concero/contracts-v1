@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {DeployHelper} from "../utils/DeployHelper.sol";
 import {ConceroBridge} from "contracts/ConceroBridge.sol";
 import {DexSwap} from "contracts/DexSwap.sol";
-import {InfraOrchestrator} from "contracts/InfraOrchestrator.sol";
+import {InfraOrchestratorMock} from "../Mocks/InfraOrchestratorMock.sol";
 import {PauseDummy} from "contracts/PauseDummy.sol";
 import {Script} from "forge-std/src/Script.sol";
 import {TransparentUpgradeableProxy, ITransparentUpgradeableProxy} from "contracts/Proxy/TransparentUpgradeableProxy.sol";
@@ -16,7 +16,7 @@ import {ConceroBridgeMock} from "test/foundry/Mocks/ConceroBridgeMock.sol";
 contract DeployInfraScript is DeployHelper {
     // @notice contract addresses
     TransparentUpgradeableProxy internal infraProxy;
-    InfraOrchestrator internal infraOrchestrator;
+    InfraOrchestratorMock internal infraOrchestrator;
     //ConceroBridge internal conceroBridge;
     ConceroBridgeMock public conceroBridgeMock;
     DexSwap internal dexSwap;
@@ -114,7 +114,7 @@ contract DeployInfraScript is DeployHelper {
 
     function _deployOrchestrator() internal {
         vm.prank(deployer);
-        infraOrchestrator = new InfraOrchestrator(
+        infraOrchestrator = new InfraOrchestratorMock(
             getClfRouter(),
             address(dexSwap),
             address(conceroBridgeMock),
