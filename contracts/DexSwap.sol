@@ -117,6 +117,7 @@ contract DexSwap is IDexSwap, InfraCommon, InfraStorage {
         if (!isFromNative) {
             IERC20(swapData.fromToken).safeIncreaseAllowance(routerAddress, fromAmount);
             (success, ) = routerAddress.call(swapData.dexCallData);
+            IERC20(swapData.fromToken).forceApprove(routerAddress, 0);
         } else {
             (success, ) = routerAddress.call{value: fromAmount}(swapData.dexCallData);
         }
