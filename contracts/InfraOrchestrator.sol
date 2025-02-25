@@ -219,7 +219,11 @@ contract InfraOrchestrator is
         _bridge(bridgeData, compressedDstSwapData);
     }
 
-    function sendBatches() external onlyOwner {}
+    function sendBatches() external onlyOwner {
+        bytes memory delegateCallArgs = abi.encodeWithSelector(IConceroBridge.sendBatches.selector);
+
+        LibConcero.safeDelegateCall(i_concero, delegateCallArgs);
+    }
 
     /**
      * @notice Wrapper function to delegate call to ConceroBridge.addUnconfirmedTX
