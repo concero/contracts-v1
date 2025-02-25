@@ -10,6 +10,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {InfraCCIP} from "./InfraCCIP.sol";
 import {IConceroBridge} from "./Interfaces/IConceroBridge.sol";
+import {CHAIN_SELECTOR_ARBITRUM, CHAIN_SELECTOR_BASE, CHAIN_SELECTOR_POLYGON, CHAIN_SELECTOR_AVALANCHE, CHAIN_SELECTOR_OPTIMISM} from "./Constants.sol";
 
 /* ERRORS */
 /// @notice error emitted when the input amount is less than the fees
@@ -119,6 +120,27 @@ contract ConceroBridge is IConceroBridge, InfraCCIP {
             bridgeData.receiver,
             compressedDstSwapData
         );
+    }
+
+    function sendBatches() external {
+        uint64[] memory dstChainSelectors = new uint64[](5);
+        dstChainSelectors[0] = CHAIN_SELECTOR_ARBITRUM;
+        dstChainSelectors[1] = CHAIN_SELECTOR_BASE;
+        dstChainSelectors[2] = CHAIN_SELECTOR_POLYGON;
+        dstChainSelectors[3] = CHAIN_SELECTOR_AVALANCHE;
+        dstChainSelectors[4] = CHAIN_SELECTOR_OPTIMISM;
+
+        for (uint256 i; i < dstChainSelectors.length; ++i) {
+            uint64 dstChainSelector = dstChainSelectors[i];
+            if (dstChainSelector == i_chainSelector) continue;
+
+            uint256 batchedTxAmount = s_pendingSettlementTxAmountByDstChain[dstChainSelector];
+
+            if (batchedTxAmount > 0) {
+                address fromToken = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
+                _sendBatchViaSettlement(fromToken, batchedTxAmount, dstChainSelector);
+            }
+        }
     }
 
     function _addPendingSettlementTx(

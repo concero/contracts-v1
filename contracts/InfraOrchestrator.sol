@@ -164,6 +164,8 @@ contract InfraOrchestrator is
         validateSrcSwapData(srcSwapData)
         validateBridgeData(bridgeData)
     {
+        revert("paused");
+
         address usdc = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
 
         if (srcSwapData[srcSwapData.length - 1].toToken != usdc) {
@@ -191,6 +193,8 @@ contract InfraOrchestrator is
         address receiver,
         Integration calldata integration
     ) external payable nonReentrant validateSrcSwapData(swapData) {
+        revert("paused");
+
         _transferTokenFromUser(swapData);
         swapData = _collectSwapFee(swapData, integration);
         _swap(swapData, receiver);
@@ -206,12 +210,16 @@ contract InfraOrchestrator is
         bytes memory compressedDstSwapData,
         Integration calldata integration
     ) external payable nonReentrant validateBridgeData(bridgeData) {
+        revert("paused");
+
         address fromToken = _getUSDCAddressByChainIndex(CCIPToken.usdc, i_chainIndex);
         LibConcero.transferFromERC20(fromToken, msg.sender, address(this), bridgeData.amount);
         bridgeData.amount -= _collectIntegratorFee(fromToken, bridgeData.amount, integration);
 
         _bridge(bridgeData, compressedDstSwapData);
     }
+
+    function sendBatches() external onlyOwner {}
 
     /**
      * @notice Wrapper function to delegate call to ConceroBridge.addUnconfirmedTX
