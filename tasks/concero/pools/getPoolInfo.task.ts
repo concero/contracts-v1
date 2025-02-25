@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { conceroChains, networkEnvKeys, ProxyEnum } from "../../../constants";
 import { getClients, getEnvAddress, getEnvVar } from "../../../utils";
-import { Address, erc20Abi, parseAbi } from "viem";
+import { Address, erc20Abi, formatUnits, parseAbi } from "viem";
 
 async function getPoolsBalanceAndLoansInUse() {
   const childPoolInfo = {};
@@ -70,35 +70,25 @@ async function getBatchedAmountsByLane() {
 task("get-pool-info", "").setAction(async taskArgs => {
   const poolsBaseInfo = await getPoolsBalanceAndLoansInUse();
   const batchedAmountsByLane = await getBatchedAmountsByLane();
-  console.log(batchedAmountsByLane);
-  const poolBalancesWithPendingBatch = {};
-
-  for (const chain in poolsBaseInfo) {
-    let balance = poolsBaseInfo[chain].balance;
-
-    for (const _chain in batchedAmountsByLane) {
-      if (chain === _chain) continue;
-      balance += batchedAmountsByLane[_chain][chain];
-    }
-
-    poolBalancesWithPendingBatch[chain] = balance;
-  }
-
-  let totalBalanceWithBatchedAmount = 0n;
-
-  for (const chain in poolBalancesWithPendingBatch) {
-    totalBalanceWithBatchedAmount += poolBalancesWithPendingBatch[chain];
-  }
-
-  console.log(totalBalanceWithBatchedAmount); // 112_035.298232
 
   let totalBalanceWithLoansInUse = 0n;
+  let totalBalanceWithBatchedAmounts = 0n;
 
-  for (const chain in poolsBaseInfo) {
-    totalBalanceWithLoansInUse += poolsBaseInfo[chain].balance + poolsBaseInfo[chain].loansInUse;
+  for (const chainId in poolsBaseInfo) {
+    const { balance, loansInUse } = poolsBaseInfo[chainId];
+    totalBalanceWithLoansInUse += balance + loansInUse;
+
+    for (const lane in batchedAmountsByLane) {
+      if (lane === chainId) continue;
+
+      const batchedAmounts = batchedAmountsByLane[lane][chainId];
+      totalBalanceWithBatchedAmounts += batchedAmounts;
+    }
+    totalBalanceWithBatchedAmounts += balance;
   }
 
-  console.log(totalBalanceWithLoansInUse);
+  console.log("Total balance with loans in use: ", formatUnits(totalBalanceWithLoansInUse, 6));
+  console.log("Total balance with batched amounts: ", formatUnits(totalBalanceWithBatchedAmounts, 6));
 });
 
 export default {};
