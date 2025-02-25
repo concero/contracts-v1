@@ -58,4 +58,6 @@ interface IConceroBridge is IInfraStorage {
         uint64 dstChainSelector,
         uint256 amount
     ) external view returns (uint256 conceroMsgFees, uint256 ccipFees, uint256 lancaFees);
+
+    function sendBatches() external;
 }

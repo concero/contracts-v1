@@ -222,7 +222,7 @@ contract InfraOrchestrator is
     function sendBatches() external onlyOwner {
         bytes memory delegateCallArgs = abi.encodeWithSelector(IConceroBridge.sendBatches.selector);
 
-        LibConcero.safeDelegateCall(i_concero, delegateCallArgs);
+        LibConcero.safeDelegateCall(i_conceroBridge, delegateCallArgs);
     }
 
     /**
