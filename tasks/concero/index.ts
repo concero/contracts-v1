@@ -40,6 +40,7 @@ import { getFailedCCIPTxs } from "./getFailedCCIPTxs";
 
 import updateClfPremiumFeesTask from "./deployInfra/updateClfPremiumFeesTask";
 import { deployDeterministically } from "./deterministicDeployment";
+import sendBatches from "./sendBatches";
 
 export default {
   deployConceroDexSwap,
@@ -79,4 +80,5 @@ export default {
   getPoolBalances,
   updateClfPremiumFeesTask,
   deployDeterministically,
+  sendBatches,
 };
