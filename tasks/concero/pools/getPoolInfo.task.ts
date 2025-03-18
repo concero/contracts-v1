@@ -23,8 +23,8 @@ async function getPoolsBalanceAndLoansInUse() {
 
     const loansInUse = await publicClient.readContract({
       address: poolAddress,
-      abi: parseAbi(["function s_loansInUse() external returns (uint256)"]),
-      functionName: "s_loansInUse",
+      abi: parseAbi(["function getUsdcLoansInUse() external returns (uint256)"]),
+      functionName: "getUsdcLoansInUse",
     });
 
     childPoolInfo[chain.chainId] = {
@@ -70,6 +70,8 @@ async function getBatchedAmountsByLane() {
 task("get-pool-info", "").setAction(async taskArgs => {
   const poolsBaseInfo = await getPoolsBalanceAndLoansInUse();
   const batchedAmountsByLane = await getBatchedAmountsByLane();
+
+  console.log(batchedAmountsByLane);
 
   let totalBalanceWithLoansInUse = 0n;
   let totalBalanceWithBatchedAmounts = 0n;
